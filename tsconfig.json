@@ -1,0 +1,29 @@
+{
+	"ts-node": {
+		"files": true,
+	},
+	"compilerOptions": {
+		// Output
+		"target": "es2017",
+		"module": "commonjs",
+		"outDir": "dist",
+		"inlineSources": true,
+		"sourceMap": true,
+		"noEmitOnError": true,
+		"removeComments": true,
+
+		// Development
+		"lib": [
+			"es5",
+		],
+		"checkJs": true,
+		"strict": true,
+		"noUnusedLocals": true,
+		"experimentalDecorators": true,
+		"esModuleInterop": false,
+		"skipLibCheck": true,
+		"forceConsistentCasingInFileNames": true,
+		"resolveJsonModule": true,
+		"importsNotUsedAsValues": "error",
+	},
+}

@@ -1,0 +1,32 @@
+name: Tests
+
+env:
+  PORT: "8081"
+  HEROKU_SLUG_COMMIT: "0000000000000000000000000000000000000000"
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  JWT_TOKEN_SECRET: some-jwT_Token=secret@!23324
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
+
+jobs:
+  test_u:
+    name: Unit
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+
+      - run: npm ci
+      - run: npm run test:u
+
+  test_i:
+    name: Integration
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+
+      - run: npm ci
+      - run: npm run test:i
