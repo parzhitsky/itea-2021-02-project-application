@@ -1,8 +1,8 @@
 import bcrypt = require("bcrypt");
 import type Entity from "../entity.type";
-import type { ImplyTimestamps } from "../with-timestamps.type";
-import client, { Model, DataTypes } from "../client";
+import client, { Model, DataTypes, ModelStatic } from "../client"; // TODO: use `type ModelStatic`
 import Logged from "../../log/logged.decorator";
+import type ModelWithoutTimestamps from "../model-without-timestamps.type";
 
 export interface UserTypeCreation {
 	login: string;
@@ -24,7 +24,10 @@ export class User extends Model<UserType, UserTypeCreation> {
 
 export default User;
 
-User.init<ImplyTimestamps<User>>({
+/** @private */
+type UserNoTimestamps = ModelWithoutTimestamps<UserType, UserTypeCreation>;
+
+User.init<ModelStatic<UserNoTimestamps>, UserNoTimestamps>({
 	id: {
 		type: DataTypes.BIGINT,
 		primaryKey: true,

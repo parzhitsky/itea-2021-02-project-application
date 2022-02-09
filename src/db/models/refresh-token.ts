@@ -1,7 +1,7 @@
 import type Entity from "../entity.type";
-import type { ImplyTimestamps } from "../with-timestamps.type";
-import client, { Model, DataTypes } from "../client";
+import client, { Model, DataTypes, ModelStatic } from "../client"; // TODO: use `type ModelStatic`
 import User from "./user";
+import type ModelWithoutTimestamps from "../model-without-timestamps.type";
 
 export interface RefreshTokenTypeCreation {
 	userID: string;
@@ -14,7 +14,10 @@ export class RefreshToken extends Model<RefreshTokenType, RefreshTokenTypeCreati
 
 export default RefreshToken;
 
-RefreshToken.init<ImplyTimestamps<RefreshToken>>({
+/** @private */
+type RefreshTokenTypeNoTimestamps = ModelWithoutTimestamps<RefreshTokenType, RefreshTokenTypeCreation>;
+
+RefreshToken.init<ModelStatic<RefreshTokenTypeNoTimestamps>, RefreshTokenTypeNoTimestamps>({
 	id: {
 		type: DataTypes.UUID,
 		defaultValue: DataTypes.UUIDV4,
