@@ -64,8 +64,7 @@ User.init<ModelStatic<UserNoTimestamps>, UserNoTimestamps>({
 	hooks: {
 		async beforeCreate(user) {
 			const password = user.getDataValue("password");
-			const salt = await bcrypt.genSalt(10);
-			const hash = await bcrypt.hash(password, salt);
+			const hash = await bcrypt.hash(password, 10);
 
 			user.setDataValue("password", hash);
 		},
