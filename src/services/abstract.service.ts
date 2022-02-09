@@ -1,9 +1,19 @@
 import Logged from "../log/logged.decorator";
 
+/** @private */
+interface ServiceWithDeps<
+	Deps extends Service.Deps,
+	Name extends string & keyof Deps,
+> {
+	deps: {
+		[N in Name]: NonNullable<Deps[Name]>;
+	};
+}
+
 /** @public */
 namespace Service {
 	// short for "dependencies"
-	export type Deps = Partial<Record<string, Service>>;
+	export type Deps = Record<string, Service | undefined>;
 }
 
 /** @public */
@@ -37,7 +47,7 @@ abstract class Service<Deps extends Service.Deps = {}> {
 		Name extends string & keyof Deps,
 	>(
 		name: Name,
-	): asserts this is { deps: { [N in Name]: NonNullable<Deps[Name]> } } {
+	): asserts this is ServiceWithDeps<Deps, Name> {
 		if ((this.deps[name] instanceof Service) === false)
 			throw new ServiceDependencyMissingError(this, name);
 	}
