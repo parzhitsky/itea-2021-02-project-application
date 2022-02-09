@@ -15,9 +15,9 @@ export class RefreshToken extends Model<RefreshTokenType, RefreshTokenTypeCreati
 export default RefreshToken;
 
 /** @private */
-type RefreshTokenTypeNoTimestamps = ModelWithoutTimestamps<RefreshTokenType, RefreshTokenTypeCreation>;
+type RefreshTokenNoTimestamps = ModelWithoutTimestamps<RefreshTokenType, RefreshTokenTypeCreation>;
 
-RefreshToken.init<ModelStatic<RefreshTokenTypeNoTimestamps>, RefreshTokenTypeNoTimestamps>({
+RefreshToken.init<ModelStatic<RefreshTokenNoTimestamps>, RefreshTokenNoTimestamps>({
 	id: {
 		type: DataTypes.UUID,
 		defaultValue: DataTypes.UUIDV4,
