@@ -7,9 +7,9 @@ namespace Service {
 }
 
 /** @public */
-abstract class Service {
+abstract class Service<Deps extends Service.Deps = {}> {
 	constructor(
-		protected deps: Service.Deps = Object.create(null),
+		protected deps = Object.create(null) as Deps,
 	) {}
 
 	/**
@@ -22,15 +22,11 @@ abstract class Service {
 	 * 	first?: ServiceOne;
 	 * };
 	 *
-	 * class ServiceTwo extends Service {
-	 * 	constructor(deps?: ServiceTwoDeps) {
-	 * 		super(deps);
-	 * 	}
-	 *
+	 * class ServiceTwo extends Service<ServiceTwoDeps> {
 	 * 	doSomethingUsingServiceOne() {
-	 * 		this.using<ServiceTwoDeps, "first">("first");
+	 * 		this.using("first");
 	 *
-	 * 		// the object this.deps.first is how properly typed
+	 * 		// the object `this.deps.first` is how properly typed
 	 * 		// and it is guaranteed to exist in runtime
 	 * 		this.deps.first.doSomething();
 	 * 	}
@@ -38,7 +34,6 @@ abstract class Service {
 	 */
 	@Logged({ level: "debug" })
 	protected using<
-		Deps extends Service.Deps,
 		Name extends string & keyof Deps,
 	>(
 		name: Name,

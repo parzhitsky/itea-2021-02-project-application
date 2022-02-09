@@ -8,11 +8,6 @@ import type UserService from "./user.service";
 import Service from "./abstract.service";
 
 /** @private */
-interface Deps extends Service.Deps {
-	userService?: UserService;
-}
-
-/** @private */
 type AuthType = "Bearer" | "Basic";
 
 /** @private */
@@ -65,11 +60,9 @@ interface IssuedTokens extends WithAccessToken {
 /** @private */
 const secret = process.env.JWT_TOKEN_SECRET;
 
-export default class AuthService extends Service {
-	constructor(deps?: Deps) {
-		super(deps);
-	}
-
+export default class AuthService extends Service<{
+	userService?: UserService;
+}> {
 	@Logged({ level: "debug" })
 	protected parseAuthValue(expectedType: AuthType, auth: string | undefined): string {
 		if (!auth)
@@ -89,7 +82,7 @@ export default class AuthService extends Service {
 	@Logged({ level: "debug" })
 	protected async validateCreds(auth: string | undefined): Promise<UserType> {
 		// TODO: rewrite as decorator (#34)
-		this.using<Deps, "userService">("userService");
+		this.using("userService");
 
 		const credsRaw = this.parseAuthValue("Basic", auth);
 		const creds = Buffer.from(credsRaw, "base64").toString("ascii");
