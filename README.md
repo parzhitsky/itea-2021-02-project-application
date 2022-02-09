@@ -1,52 +1,26 @@
-# crud-app-example
+# itea-2021-02-project-application
 
-## Environments:
-
-Notice that any push to non-development environment branch automatically triggers deploy to that environment, as in `git push prod main` deploys to production environment.
+## Environments and branches
 
 ### 🔴 Production
 
-- Link: https://epam-crud-app-example-prod.herokuapp.com/
-- Branch: `main`
-- Git link: https://git.heroku.com/epam-crud-app-example-prod.git
-- Git remote: `prod`
+Production environment "lives" on the `main` branch. Progressing the codebase to production is possible only from `develop` branch and only through Heroku UI.
 
-	```sh
-	git remote add prod https://git.heroku.com/epam-crud-app-example-prod.git
-	```
+<!-- TODO: add Heroku app ID (?) -->
 
 ### 🟡 Staging
 
-- Link: https://epam-crud-app-example-staging.herokuapp.com/
-- Branch: `develop`
-- Git link: https://git.heroku.com/epam-crud-app-example-staging.git
-- Git remote: `staging`
+Staging environment is deployed from the `develop` branch. Progressing the codebase to staging is possible only through merging feature pull requests on GitHub.
 
-	```sh
-	git remote add staging https://git.heroku.com/epam-crud-app-example-staging.git
-	```
+<!-- TODO: add Heroku app ID (?) -->
 
 ### 🔵 Development
 
-> Local development machine.
-
-- Link: _(localhost)_
-- Branch: _(any `feature/*` branch)_
-- Git link: https://github.com/epam-nodejs-program-2021-03-01/crud-app-example.git
-- Git remote: `origin`
-
-	```sh
-	git remote add origin https://github.com/epam-nodejs-program-2021-03-01/crud-app-example.git
-	```
+Development environment is taken from various feature branches, such as `feat/*`, `fix/*` etc. Depending on whether the branch is deployed to Heroku, it is either a local development environment (codebase on the developer's local machine) or remote development environment (deployed codebase).
 
 ### 🟢 Playground
 
-> The `src/playground.ts` file on local development machine. Run with `npm run play` script.
-
-- Link: _(localhost)_
-- Branch: _(N/A)_
-- Git link: _(N/A)_
-- Git remote: _(N/A)_
+Playground environment is basically just a file on local development machine. It is used to quickly try out the project from the code's perspective (see **Scripts** section below).
 
 ## Endpoints
 
@@ -124,7 +98,7 @@ Notice that any push to non-development environment branch automatically trigger
 
 - `npm run play`
 
-	_(intended for a local environment)_ Runs the code in the playground file.
+	_(intended for a local environment)_ Runs the code in the playground file (`src/playground.ts`; the file is created automatically, if needed).
 
 - `npm start`
 

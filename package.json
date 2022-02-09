@@ -1,17 +1,17 @@
 {
-  "name": "crud-app-example",
+  "name": "itea-2021-02-project-application",
   "version": "0.0.1",
   "description": "Example of a CRUD Node.JS Express server",
   "license": "MIT",
   "private": true,
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/epam-nodejs-program-2021-03-01/crud-app-example.git"
+    "url": "git+https://github.com/parzhitsky/itea-2021-02-project-application.git"
   },
   "bugs": {
-    "url": "https://github.com/epam-nodejs-program-2021-03-01/crud-app-example/issues"
+    "url": "https://github.com/parzhitsky/itea-2021-02-project-application/issues"
   },
-  "homepage": "https://github.com/epam-nodejs-program-2021-03-01/crud-app-example#readme",
+  "homepage": "https://github.com/parzhitsky/itea-2021-02-project-application#readme",
   "engines": {
     "node": "14 || 16"
   },
