@@ -1,5 +1,5 @@
 import type Entity from "../entity.type";
-import client, { Model, DataTypes, ModelStatic } from "../client"; // TODO: use `type ModelStatic`
+import client, { Model, DataTypes, type ModelStatic } from "../client";
 import User from "./user";
 import type ModelWithoutTimestamps from "../model-without-timestamps.type";
 

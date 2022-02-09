@@ -1,6 +1,6 @@
 import bcrypt = require("bcrypt");
 import type Entity from "../entity.type";
-import client, { Model, DataTypes, ModelStatic } from "../client"; // TODO: use `type ModelStatic`
+import client, { Model, DataTypes, type ModelStatic } from "../client";
 import Logged from "../../log/logged.decorator";
 import type ModelWithoutTimestamps from "../model-without-timestamps.type";
 
