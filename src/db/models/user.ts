@@ -1,8 +1,8 @@
 import bcrypt = require("bcrypt");
 import type Entity from "../entity.type";
-import client, { Model, DataTypes, type ModelStatic } from "../client";
+import { Model, DataTypes } from "../client";
 import Logged from "../../log/logged.decorator";
-import type ModelWithoutTimestamps from "../model-without-timestamps.type";
+import initModel from "../init-model";
 
 export interface UserTypeCreation {
 	login: string;
@@ -24,10 +24,7 @@ export class User extends Model<UserType, UserTypeCreation> {
 
 export default User;
 
-/** @private */
-type UserNoTimestamps = ModelWithoutTimestamps<UserType, UserTypeCreation>;
-
-User.init<ModelStatic<UserNoTimestamps>, UserNoTimestamps>({
+initModel(User, "user", {
 	id: {
 		type: DataTypes.BIGINT,
 		primaryKey: true,
@@ -52,8 +49,6 @@ User.init<ModelStatic<UserNoTimestamps>, UserNoTimestamps>({
 		defaultValue: false,
 	},
 }, {
-	sequelize: client,
-	tableName: "user",
 	indexes: [
 		{
 			name: "user_login",

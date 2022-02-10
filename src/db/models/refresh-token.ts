@@ -1,7 +1,7 @@
 import type Entity from "../entity.type";
-import client, { Model, DataTypes, type ModelStatic } from "../client";
+import { Model, DataTypes } from "../client";
 import User from "./user";
-import type ModelWithoutTimestamps from "../model-without-timestamps.type";
+import initModel from "../init-model";
 
 export interface RefreshTokenTypeCreation {
 	userID: string;
@@ -14,10 +14,7 @@ export class RefreshToken extends Model<RefreshTokenType, RefreshTokenTypeCreati
 
 export default RefreshToken;
 
-/** @private */
-type RefreshTokenNoTimestamps = ModelWithoutTimestamps<RefreshTokenType, RefreshTokenTypeCreation>;
-
-RefreshToken.init<ModelStatic<RefreshTokenNoTimestamps>, RefreshTokenNoTimestamps>({
+initModel(RefreshToken, "refresh_token", {
 	id: {
 		type: DataTypes.UUID,
 		defaultValue: DataTypes.UUIDV4,
@@ -32,7 +29,4 @@ RefreshToken.init<ModelStatic<RefreshTokenNoTimestamps>, RefreshTokenNoTimestamp
 			key: "id",
 		},
 	},
-}, {
-	sequelize: client,
-	tableName: "refresh_token",
 });
