@@ -26,10 +26,10 @@ export default User;
 
 initModel(User, "user", {
 	id: {
-		type: DataTypes.BIGINT,
-		primaryKey: true,
+		type: DataTypes.UUID,
+		defaultValue: DataTypes.UUIDV4,
 		allowNull: false,
-		autoIncrement: true,
+		primaryKey: true,
 	},
 	login: {
 		type: DataTypes.STRING(255),
