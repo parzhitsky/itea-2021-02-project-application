@@ -24,6 +24,8 @@ jobs:
 
   test_i:
     name: Integration
+    needs:
+      - test_u
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
