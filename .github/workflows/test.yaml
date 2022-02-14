@@ -27,6 +27,7 @@ jobs:
     needs:
       - test_u
     runs-on: ubuntu-20.04
+    if: github.base_ref == 'main'
     steps:
       - uses: actions/checkout@v2
 
