@@ -5,7 +5,7 @@ import { getUsersLimit, userLoginSubstring } from "./definitions";
 
 /** @private */
 interface Deps {
-	userService: UserService;
+	userService: Pick<UserService, "find">;
 }
 
 /** @private */
