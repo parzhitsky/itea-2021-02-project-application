@@ -1,4 +1,4 @@
-import { config } from "./config.common";
+import { config } from "./jest.config.common";
 
 export default Object.assign({}, config, {
 	displayName: "Integration",

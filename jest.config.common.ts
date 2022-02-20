@@ -10,7 +10,7 @@ export const config = {
 	],
 
 	// The root directory that Jest should scan for tests and modules within
-	rootDir: resolve(__dirname, ".."),
+	rootDir: resolve(__dirname, "."),
 
 	// ***
 
