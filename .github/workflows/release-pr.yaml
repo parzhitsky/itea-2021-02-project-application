@@ -1,0 +1,22 @@
+name: Test release PR
+
+env:
+  PORT: "8081"
+  HEROKU_SLUG_COMMIT: "0000000000000000000000000000000000000000"
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  JWT_TOKEN_SECRET: ${{ secrets.JWT_TOKEN_SECRET__GH_ACTIONS }}
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+
+      - run: npm ci
+      - run: npm t

@@ -1,4 +1,4 @@
-name: Tests
+name: Test feature PR
 
 env:
   PORT: "8081"
@@ -9,7 +9,6 @@ on:
   pull_request:
     branches:
       - develop
-      - main
 
 jobs:
   test_u:
@@ -20,15 +19,3 @@ jobs:
 
       - run: npm ci
       - run: npm run test:u
-
-  test_i:
-    name: Integration
-    needs:
-      - test_u
-    runs-on: ubuntu-20.04
-    if: github.base_ref == 'main'
-    steps:
-      - uses: actions/checkout@v2
-
-      - run: npm ci
-      - run: npm run test:i
