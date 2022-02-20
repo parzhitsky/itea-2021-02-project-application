@@ -6,7 +6,7 @@ import { userLogin, userPassword, userAge, userID } from "./definitions";
 
 /** @private */
 interface Deps {
-	userService: UserService;
+	userService: Pick<UserService, "update">;
 }
 
 /** @private */

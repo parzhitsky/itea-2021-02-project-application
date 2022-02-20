@@ -5,7 +5,7 @@ import { userID } from "./definitions";
 
 /** @private */
 interface Deps {
-	userService: UserService;
+	userService: Pick<UserService, "delete">;
 }
 
 /** @private */

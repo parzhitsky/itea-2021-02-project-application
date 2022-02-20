@@ -4,7 +4,7 @@ import RequestValidation, { Joi, Segments } from "../request-validation";
 
 /** @private */
 interface Deps {
-	authService: AuthService;
+	authService: Pick<AuthService, "login">;
 }
 
 /** @private */

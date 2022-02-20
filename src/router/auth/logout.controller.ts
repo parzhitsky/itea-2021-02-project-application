@@ -3,7 +3,7 @@ import type AuthService from "../../services/auth.service";
 
 /** @private */
 interface Deps {
-	authService: AuthService;
+	authService: Pick<AuthService, "logout">;
 }
 
 export default function logout({ authService }: Deps): RequestHandler[] {

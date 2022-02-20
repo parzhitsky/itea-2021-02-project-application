@@ -61,7 +61,7 @@ interface IssuedTokens extends WithAccessToken {
 const secret = process.env.JWT_TOKEN_SECRET;
 
 export default class AuthService extends Service<{
-	userService?: UserService;
+	userService?: Service & Pick<UserService, "findRecordByLogin">;
 }> {
 	@Logged({ level: "debug" })
 	protected parseAuthValue(expectedType: AuthType, auth: string | undefined): string {
