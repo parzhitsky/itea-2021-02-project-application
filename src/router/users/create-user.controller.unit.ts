@@ -1,10 +1,10 @@
 import { CelebrateError, Segments, Joi } from "celebrate";
 import type { RequestHandler, Request, Response } from "express";
 import type { UserType, UserTypeCreation } from "../../db/models/user";
-import UserService from "../../services/user.service";
+import type UserService from "../../services/user.service";
 import createUser from "./create-user.controller";
 
-class UserServiceMock extends UserService {
+class UserServiceMock implements Pick<UserService, "create"> {
 	async create(props: UserTypeCreation): Promise<UserType> {
 		const date = "2021-06-07T19:28:29.517Z";
 

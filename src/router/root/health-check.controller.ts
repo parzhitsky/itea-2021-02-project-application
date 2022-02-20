@@ -4,7 +4,7 @@ import type HealthService from "../../services/health.service";
 
 /** @private */
 interface Deps {
-	healthService: HealthService;
+	healthService: Pick<HealthService, "getStatus">;
 }
 
 export default function healthCheck({ healthService }: Deps): RequestHandler[] {
