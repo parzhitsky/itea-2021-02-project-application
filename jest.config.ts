@@ -1,9 +1,10 @@
-import { resolve } from "path";
+import jestConfigUnit from "./jest.config.unit";
+import jestConfigIntegration from "./jest.config.integration";
 
 export default {
 	// Run tests from one or more projects
 	projects: [
-		resolve(__dirname, "test/config.unit.ts"),
-		resolve(__dirname, "test/config.integration.ts"),
+		jestConfigUnit,
+		jestConfigIntegration,
 	],
 };

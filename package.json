@@ -17,8 +17,8 @@
   },
   "scripts": {
     "test": "jest --verbose",
-    "test:u": "jest --config test/config.unit.ts",
-    "test:i": "jest --config test/config.integration.ts",
+    "test:u": "jest --config jest.config.unit.ts",
+    "test:i": "jest --config jest.config.integration.ts",
     "clean": "del-cli dist/*",
     "build:only": "tsc --project ./tsconfig.production.json",
     "compile": "tsc --project ./tsconfig.json --noEmit",
