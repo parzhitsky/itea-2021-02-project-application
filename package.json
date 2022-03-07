@@ -62,7 +62,6 @@
     "dotenv-extended": "2.9.0",
     "express": "5.0.0-alpha.8",
     "express-allow-methods": "0.3.1",
-    "express-request-id": "2.0.1",
     "joi": "17.4.0",
     "jsonwebtoken": "8.5.1",
     "morgan": "1.10.0",
