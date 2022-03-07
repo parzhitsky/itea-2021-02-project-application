@@ -12,7 +12,7 @@ const createValidator = celebrator({
 });
 
 export default class RequestValidation<
-	Body extends unknown = unknown,
+	Body = unknown,
 	Query extends object = {},
 > {
 	request = null as unknown as Request<Record<string, string>, unknown, Body, Query>;
