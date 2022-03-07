@@ -21,6 +21,9 @@
     "@typescript-eslint/no-namespace": "off",
 
     // each type has its own specific value, just be careful about it
-    "@typescript-eslint/ban-types": "off"
+    "@typescript-eslint/ban-types": "off",
+
+    // TypeScript compiler already performs this check
+    "@typescript-eslint/no-unused-vars": "off"
   }
 }
