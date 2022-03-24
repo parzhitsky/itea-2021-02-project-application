@@ -1,17 +1,9 @@
 import express = require("express");
-import requestID = require("express-request-id");
 import cors = require("cors");
 import httpLogger from "./middlewares/http-logger";
 import errorHandler from "./middlewares/error-handler";
+import requestID from "./middlewares/request-id";
 import router from "./router";
-
-declare global {
-	namespace Express {
-		interface Request {
-			readonly id: string;
-		}
-	}
-}
 
 /** @public */
 const app = express();
