@@ -45,7 +45,7 @@ afterAll(() => client.close());
 
 describe("GET /users/{user_id} (where {user_id} does not exist in DB)", () => {
 	it("should return '404 Not Found' response", async () => {
-		const id = "0";
+		const id = "59145c76-ee91-4abc-a8ba-3ae8d807d99d";
 
 		const { body } = await request.get(`/users/${id}`)
 			.set("Authorization", getToken());
