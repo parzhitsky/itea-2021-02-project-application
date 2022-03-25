@@ -48,8 +48,7 @@ describe("GET /users/{user_id} (where {user_id} does not exist in DB)", () => {
 		const id = "0";
 
 		const { body } = await request.get(`/users/${id}`)
-			.set("Authorization", getToken())
-			.expect(404);
+			.set("Authorization", getToken());
 
 		expect(body).toMatchObject(getUserMissingResponse(id));
 	});
@@ -60,8 +59,7 @@ describe("GET /users/{user_id} (where {user_id} was deleted)", () => {
 		const id = await getIdOfDeletedUser();
 
 		const { body } = await request.get(`/users/${id}`)
-			.set("Authorization", getToken())
-			.expect(404);
+			.set("Authorization", getToken());
 
 		expect(body).toMatchObject(getUserMissingResponse(id));
 	});
