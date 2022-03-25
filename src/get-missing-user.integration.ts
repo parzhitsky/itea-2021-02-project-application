@@ -18,7 +18,7 @@ function getToken(): string {
 
 async function getIdOfDeletedUser(): Promise<string> {
 	const user = await userService.create({
-		login: "test-user-" + Date.now(),
+		username: "test-user-" + Date.now(),
 		age: 42,
 		password: "test-user-Password123",
 	});

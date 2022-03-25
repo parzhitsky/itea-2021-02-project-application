@@ -61,7 +61,7 @@ interface IssuedTokens extends WithAccessToken {
 const secret = process.env.JWT_TOKEN_SECRET;
 
 export default class AuthService extends Service<{
-	userService?: Service & Pick<UserService, "findRecordByLogin">;
+	userService?: Service & Pick<UserService, "findRecordByUsername">;
 }> {
 	@Logged({ level: "debug" })
 	protected parseAuthValue(expectedType: AuthType, auth: string | undefined): string {
@@ -81,23 +81,22 @@ export default class AuthService extends Service<{
 
 	@Logged({ level: "debug" })
 	protected async validateCreds(auth: string | undefined): Promise<UserType> {
-		// TODO: rewrite as decorator (#34)
 		this.using("userService");
 
 		const credsRaw = this.parseAuthValue("Basic", auth);
 		const creds = Buffer.from(credsRaw, "base64").toString("ascii");
 
-		const [ login, password ] = creds.split(":");
+		const [ username, password ] = creds.split(":");
 
-		const user = await this.deps.userService.findRecordByLogin(login);
+		const user = await this.deps.userService.findRecordByUsername(username);
 
 		if (user == null)
-			throw new AuthCredsInvalidError(login);
+			throw new AuthCredsInvalidError(username);
 
 		const passwordsMatch = await user.isPasswordCorrect(password);
 
 		if (!passwordsMatch)
-			throw new AuthCredsInvalidError(login);
+			throw new AuthCredsInvalidError(username);
 
 		return user.get();
 	}
@@ -215,15 +214,13 @@ export default class AuthService extends Service<{
 
 	@Logged({ level: "debug" })
 	protected async assertRefreshTokenKnown(userID: string, tokenID: string): Promise<void> {
-		const tokenDB = await RefreshToken.findOne({ where: { userID } });
+		const token = await RefreshToken.findOne({ where: { userID } });
 
-		if (tokenDB == null)
+		if (token == null)
 			throw new AuthRefreshTokenUnknownError(`user "${userID}" does not have associated refresh tokens`);
 
-		const token = tokenDB.get({ plain: true });
-
-		if (token.id !== tokenID)
-			throw new AuthRefreshTokenUnknownError(`refresh tokens "${tokenID}" is not associated with user "${userID}"`);
+		if (token.getDataValue("id") !== tokenID)
+			throw new AuthRefreshTokenUnknownError(`refresh token "${tokenID}" is not associated with user "${userID}"`);
 	}
 
 	@Logged()
@@ -249,8 +246,8 @@ export abstract class AuthHintedError extends Service.Error {
 export class AuthCredsInvalidError extends Service.Error {
 	statusCode = 401;
 
-	constructor(userLogin: string) {
-		super(`Invalid credentials: the user "${userLogin}" does not exist, or the password is incorrect`);
+	constructor(username: string) {
+		super(`Invalid credentials: the user "${username}" does not exist, or the password is incorrect`);
 	}
 }
 

@@ -42,7 +42,7 @@ describe("POST /users", () => {
 	let controller: (...args: Parameters<RequestHandler>) => void | Promise<void>;
 
 	const bodyValid: UserTypeCreation = {
-		login: "whatever",
+		username: "whatever",
 		password: "whateverPassword1",
 		age: 42,
 	};
@@ -64,29 +64,29 @@ describe("POST /users", () => {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		test.each<any>([
 			[
-				"\"login\" to be present",
-				() => delete body.login,
-				"\"login\" is required",
+				"\"username\" to be present",
+				() => delete body.username,
+				"\"username\" is required",
 			],
 			[
-				"\"login\" to have at least one character",
-				() => body.login = "",
-				"\"login\" is not allowed to be empty",
+				"\"username\" to have at least one character",
+				() => body.username = "",
+				"\"username\" is not allowed to be empty",
 			],
 			[
-				"\"login\" to have at most 32 characters",
-				() => body.login = "a".repeat(33),
-				"\"login\" length must be less than or equal to 32 characters long",
+				"\"username\" to have at most 32 characters",
+				() => body.username = "a".repeat(33),
+				"\"username\" length must be less than or equal to 32 characters long",
 			],
 			[
-				"\"login\" to start with a letter",
-				() => body.login = "1-hello-world",
-				'"login" with value "1-hello-world" fails to match the alpha-numeric characters pattern',
+				"\"username\" to start with a letter",
+				() => body.username = "1-hello-world",
+				'"username" with value "1-hello-world" fails to match the alpha-numeric characters pattern',
 			],
 			[
-				"\"login\" to only contain letters, digits, and hyphens",
-				() => body.login = "hello-world-@",
-				'"login" with value "hello-world-@" fails to match the alpha-numeric characters pattern',
+				"\"username\" to only contain letters, digits, and hyphens",
+				() => body.username = "hello-world-@",
+				'"username" with value "hello-world-@" fails to match the alpha-numeric characters pattern',
 			],
 			[
 				"\"password\" to be present",

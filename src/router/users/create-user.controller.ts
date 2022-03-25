@@ -2,7 +2,7 @@ import type { RequestHandler } from "express";
 import type { UserTypeCreation } from "../../db/models/user";
 import type UserService from "../../services/user.service";
 import RequestValidation, { Joi, Segments } from "../request-validation";
-import { userAge, userLogin, userPassword } from "./definitions";
+import { userAge, username, userPassword } from "./definitions";
 
 /** @private */
 interface Deps {
@@ -12,7 +12,7 @@ interface Deps {
 /** @private */
 const { requestValidator, request } = new RequestValidation<UserTypeCreation>({
 	[Segments.BODY]: Joi.object<UserTypeCreation>({
-		login: userLogin.required(),
+		username: username.required(),
 		password: userPassword.required(),
 		age: userAge.required(),
 	}),
