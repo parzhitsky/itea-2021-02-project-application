@@ -32,7 +32,7 @@ Playground environment is basically just a file on local development machine. It
 
 - `POST /auth/login` – get an access token (with request body packed as its payload) and a refresh token
 
-	_Requires Basic Authorization header with user login and password_
+	_Requires Basic Authorization header with username and password_
 
 - `POST /auth/renew` – get a new access token
 
@@ -40,12 +40,13 @@ Playground environment is basically just a file on local development machine. It
 
 - `POST /auth/logout` - invalidate all issued refresh tokens
 
-	_Requires Basic Authorization header with user login and password_
+	_Requires Basic Authorization header with username and password_
 
 ### Users
 
+
 - `GET /users` 🔐 – get list of all users
-	- `GET /users?login-substring=<string>` 🔐 – get list of all users, whose login contains the given substring
+	- `GET /users?username=<string>` 🔐 – get list of all users, whose username contains a given substring
 	- `GET /users?limit=<integer>` 🔐 – get list of all users, limiting the results to the given value
 - `POST /users` 🔐 – create new user
 - `GET /users/:id` 🔐 – get user by their ID

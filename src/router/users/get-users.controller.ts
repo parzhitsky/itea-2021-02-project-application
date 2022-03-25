@@ -1,7 +1,7 @@
 import type { RequestHandler } from "express";
 import type UserService from "../../services/user.service";
 import RequestValidation, { Joi, Segments } from "../request-validation";
-import { getUsersLimit, userLoginSubstring } from "./definitions";
+import { getUsersLimit, usernameSubstring } from "./definitions";
 
 /** @private */
 interface Deps {
@@ -10,14 +10,14 @@ interface Deps {
 
 /** @private */
 interface GetUsersQuery {
-	"login-substring"?: string;
+	username?: string;
 	limit?: number;
 }
 
 /** @private */
 const { requestValidator, request } = new RequestValidation<unknown, GetUsersQuery>({
 	[Segments.QUERY]: Joi.object<GetUsersQuery>({
-		"login-substring": userLoginSubstring.allow(""),
+		username: usernameSubstring.allow(""),
 		limit: getUsersLimit.allow(""),
 	}),
 });
@@ -26,10 +26,9 @@ export default function getUsers({ userService }: Deps): RequestHandler[] {
 	return [
 		requestValidator,
 		async (req: typeof request, res) => {
-			const users = await userService.find({
-				filter: req.query["login-substring"],
-				limit: req.query.limit,
-			});
+			const { username, limit } = req.query;
+
+			const users = await userService.find({ username, limit });
 
 			res.json(users);
 		},

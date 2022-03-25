@@ -2,9 +2,9 @@ import { Joi, definitions } from "../request-validation";
 
 export const userID = definitions.entityID;
 
-export const userLogin = definitions.name;
+export const username = definitions.name;
 
-export const userLoginSubstring = Joi.string()
+export const usernameSubstring = Joi.string()
 	.max(32);
 
 export const userPassword = Joi.string()

@@ -5,7 +5,7 @@ import Logged from "../../log/logged.decorator";
 import initModel from "../init-model";
 
 export interface UserTypeCreation {
-	login: string;
+	username: string;
 	/** Password hash, actually */
 	password: string;
 	age: number;
@@ -31,9 +31,9 @@ initModel(User, "user", {
 		allowNull: false,
 		primaryKey: true,
 	},
-	login: {
+	username: {
 		type: DataTypes.STRING(255),
-		unique: "user_login",
+		unique: "user_username",
 		allowNull: false,
 	},
 	password: {
@@ -51,8 +51,8 @@ initModel(User, "user", {
 }, {
 	indexes: [
 		{
-			name: "user_login",
-			fields: [ "login" ],
+			name: "user_username",
+			fields: [ "username" ],
 			unique: true,
 		},
 	],

@@ -5,8 +5,8 @@ import ModelService from "./model-abstract.service";
 
 /** @private */
 interface FindQuery extends ModelService.FindQuery {
-	filter?: string;
-	filterExact?: boolean;
+	username?: string;
+	usernameExact?: boolean;
 }
 
 export default class UserService extends ModelService<User> {
@@ -26,15 +26,15 @@ export default class UserService extends ModelService<User> {
 	}
 
 	@Logged()
-	async find({ filter = "", filterExact = false, limit }: FindQuery = {}): Promise<UserType[]> {
+	async find({ username = "", usernameExact = false, limit }: FindQuery = {}): Promise<UserType[]> {
 		const records = await User.findAll({
 			where: {
-				login: {
-					[Op.like]: filterExact ? filter : `%${filter}%`,
+				username: {
+					[Op.like]: usernameExact ? username : `%${username}%`,
 				},
 				isDeleted: "false",
 			},
-			order: [['login', 'ASC']],
+			order: [['username', 'ASC']],
 			limit,
 		});
 
@@ -47,13 +47,13 @@ export default class UserService extends ModelService<User> {
 	}
 
 	@Logged()
-	async findRecordByLogin(login: string): Promise<User | null> {
-		return User.findOne({ where: { login, isDeleted: "false" } });
+	async findRecordByUsername(username: string): Promise<User | null> {
+		return User.findOne({ where: { username, isDeleted: "false" } });
 	}
 
 	@Logged()
-	async findByLogin(login: string): Promise<UserType | null> {
-		const user = await this.findRecordByLogin(login);
+	async findByUsername(username: string): Promise<UserType | null> {
+		const user = await this.findRecordByUsername(username);
 
 		return user?.get() ?? null;
 	}
@@ -66,7 +66,7 @@ export default class UserService extends ModelService<User> {
 			return record.get();
 		} catch (error: unknown) {
 			if (error instanceof UniqueConstraintError)
-				throw new UserNotUniqueError(props.login);
+				throw new UserNotUniqueError(props.username);
 
 			throw error;
 		}
@@ -87,7 +87,7 @@ export class UserNotFoundError extends ModelService.ValueNotFoundError {
 }
 
 export class UserNotUniqueError extends ModelService.ValueNotUniqueError {
-	constructor(userLogin: string) {
-		super(`User with login "${userLogin}" already exists`);
+	constructor(username: string) {
+		super(`User "${username}" already exists`);
 	}
 }
