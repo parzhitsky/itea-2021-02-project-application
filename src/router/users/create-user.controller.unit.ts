@@ -81,12 +81,12 @@ describe("POST /users", () => {
 			[
 				"\"username\" to start with a letter",
 				() => body.username = "1-hello-world",
-				'"login" with value "1-hello-world" fails to match the alpha-numeric characters pattern',
+				'"username" with value "1-hello-world" fails to match the alpha-numeric characters pattern',
 			],
 			[
 				"\"username\" to only contain letters, digits, and hyphens",
 				() => body.username = "hello-world-@",
-				'"login" with value "hello-world-@" fails to match the alpha-numeric characters pattern',
+				'"username" with value "hello-world-@" fails to match the alpha-numeric characters pattern',
 			],
 			[
 				"\"password\" to be present",
