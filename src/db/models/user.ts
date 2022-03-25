@@ -57,7 +57,7 @@ initModel(User, "user", {
 		},
 	],
 	hooks: {
-		async beforeCreate(user) {
+		async beforeCreate(user: User) {
 			const password = user.getDataValue("password");
 			const hash = await bcrypt.hash(password, 10);
 
