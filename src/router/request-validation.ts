@@ -33,5 +33,6 @@ export namespace definitions {
 		.positive()
 		.integer();
 
-	export const entityID = naturalNumber.allow(0);
+	export const entityID = Joi.string()
+		.uuid();
 }
