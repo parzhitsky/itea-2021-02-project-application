@@ -22,7 +22,8 @@ initModel(RefreshToken, "refresh_token", {
 		primaryKey: true,
 	},
 	userID: {
-		type: DataTypes.BIGINT,
+		type: DataTypes.UUID,
+		defaultValue: DataTypes.UUIDV4,
 		allowNull: false,
 		references: {
 			model: User,
