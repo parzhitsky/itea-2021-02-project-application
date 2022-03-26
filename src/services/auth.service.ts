@@ -12,8 +12,8 @@ type AuthType = "Bearer" | "Basic";
 
 /** @private */
 const jwtTokenLifespans = {
-	access: "30 seconds",
-	refresh: "1 week",
+	access: "10 minutes",
+	refresh: "1 hour",
 } as const;
 
 /** @private */
