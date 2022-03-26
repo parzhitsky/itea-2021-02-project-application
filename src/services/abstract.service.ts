@@ -67,6 +67,8 @@ namespace Service {
 	 * error (clients should not see this), – therefore it is not a `Service.Error`.
 	 */
 	export abstract class Error extends global.Error {
+		readonly name = this.constructor.name;
+
 		abstract statusCode: number;
 	}
 }
