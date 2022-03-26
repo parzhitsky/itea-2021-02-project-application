@@ -4,7 +4,7 @@ import logger from "../log/logger";
 import Logged from "../log/logged.decorator";
 import type { UserType } from "../db/models/user";
 import RefreshToken from "../db/models/refresh-token";
-import type UserService from "./user.service";
+import UserService, { UserNotFoundError } from "./user.service";
 import Service from "./abstract.service";
 
 /** @private */
@@ -61,7 +61,7 @@ interface IssuedTokens extends WithAccessToken {
 const secret = process.env.JWT_TOKEN_SECRET;
 
 export default class AuthService extends Service<{
-	userService?: Service & Pick<UserService, "findRecordByUsername">;
+	userService?: Service & Pick<UserService, "findRecordByUsername" | "get">;
 }> {
 	@Logged({ level: "debug" })
 	protected parseAuthValue(expectedType: AuthType, auth: string | undefined): string {
@@ -213,7 +213,7 @@ export default class AuthService extends Service<{
 	}
 
 	@Logged({ level: "debug" })
-	protected async assertRefreshTokenKnown(userID: string, tokenID: string): Promise<void> {
+	protected async assertRefreshTokenKnown({ userID, tokenID }: PayloadData<"refresh">): Promise<void> {
 		const token = await RefreshToken.findOne({ where: { userID } });
 
 		if (token == null)
@@ -223,15 +223,47 @@ export default class AuthService extends Service<{
 			throw new AuthRefreshTokenUnknownError(`refresh token "${tokenID}" is not associated with user "${userID}"`);
 	}
 
+	@Logged({ level: "debug" })
+	protected async convertAuthToRefreshTokenPayloadData(auth: string | undefined): Promise<PayloadData<"refresh">> {
+		const data = this.parseToken("refresh", auth);
+
+		this.assertRefreshTokenPayloadDataKnown(data);
+
+		await this.assertRefreshTokenKnown(data);
+
+		return data;
+	}
+
+	private readonly getUserByRefreshTokenAuthToleratedErrorNames: Set<string> = new Set([
+		AuthHeaderMissingError.name,
+		AuthRefreshTokenUnknownError.name,
+		UserNotFoundError.name,
+	]);
+
+	@Logged()
+	async getUserByRefreshTokenAuth(auth: string | undefined): Promise<UserType | null> {
+		this.using("userService");
+
+		// alias
+		const toleratedErrors = this.getUserByRefreshTokenAuthToleratedErrorNames;
+
+		try {
+			const { userID } = await this.convertAuthToRefreshTokenPayloadData(auth);
+
+			return this.deps.userService.get(userID);
+		} catch (error) {
+			if (error instanceof Error && toleratedErrors.has(error.name)) {
+				logger.error(error);
+				return null;
+			}
+
+			throw error;
+		}
+	}
+
 	@Logged()
 	async renew(auth: string | undefined, data?: unknown): Promise<WithAccessToken> {
-		const tokenData = this.parseToken("refresh", auth);
-
-		this.assertRefreshTokenPayloadDataKnown(tokenData);
-
-		const { userID, tokenID } = tokenData;
-
-		await this.assertRefreshTokenKnown(userID, tokenID);
+		await this.convertAuthToRefreshTokenPayloadData(auth);
 
 		return {
 			accessToken: this.issueToken("access", data),

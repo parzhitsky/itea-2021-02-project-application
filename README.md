@@ -34,6 +34,10 @@ Playground environment is basically just a file on local development machine. It
 
 	_Requires Basic Authorization header with username and password_
 
+- `GET /auth/user` – get info about the user, to which a given refresh token belongs
+
+	_Optionally accepts Bearer Authorization header with refresh token_
+
 - `POST /auth/renew` – get a new access token
 
 	_Requires Bearer Authorization header with refresh token_
