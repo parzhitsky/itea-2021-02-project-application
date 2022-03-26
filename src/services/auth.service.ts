@@ -80,7 +80,7 @@ export default class AuthService extends Service<{
 	}
 
 	@Logged({ level: "debug" })
-	protected async validateCreds(auth: string | undefined): Promise<UserType> {
+	protected async getUserByBasicAuth(auth: string | undefined): Promise<UserType> {
 		this.using("userService");
 
 		const credsRaw = this.parseAuthValue("Basic", auth);
@@ -149,7 +149,7 @@ export default class AuthService extends Service<{
 
 	@Logged()
 	async login(auth: string | undefined, data?: unknown): Promise<IssuedTokens> {
-		const user = await this.validateCreds(auth);
+		const user = await this.getUserByBasicAuth(auth);
 		const refreshToken = await this.issueRefreshToken(user.id);
 		const accessToken = this.issueToken("access", data);
 
@@ -161,7 +161,7 @@ export default class AuthService extends Service<{
 
 	@Logged()
 	async logout(auth: string | undefined): Promise<void> {
-		const user = await this.validateCreds(auth);
+		const user = await this.getUserByBasicAuth(auth);
 
 		await this.invalidateRefreshToken(user.id);
 	}
