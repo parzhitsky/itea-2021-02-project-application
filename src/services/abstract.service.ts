@@ -6,7 +6,7 @@ interface ServiceWithDeps<
 	Name extends string & keyof Deps,
 > {
 	deps: {
-		[N in Name]: NonNullable<Deps[Name]>;
+		readonly [N in Name]: NonNullable<Deps[Name]>;
 	};
 }
 
@@ -19,7 +19,7 @@ namespace Service {
 /** @public */
 abstract class Service<Deps extends Service.Deps = {}> {
 	constructor(
-		protected deps = Object.create(null) as Deps,
+		protected readonly deps = Object.create(null) as Deps,
 	) {}
 
 	/**
