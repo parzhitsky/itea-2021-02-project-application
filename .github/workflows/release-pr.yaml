@@ -26,10 +26,10 @@ jobs:
         run: npm t
         continue-on-error: true
 
-      - name: Save test results
+      - name: Save logs
         uses: actions/upload-artifact@v3
         with:
-          name: test-results-${{ github.event.pull_request.head.sha }}
+          name: logs-${{ github.event.pull_request.head.sha }}
           path: ./*.log
 
       - name: Fail if needed
