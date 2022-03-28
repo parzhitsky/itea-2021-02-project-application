@@ -16,14 +16,12 @@ const logger = winston.createLogger({
 		winston.format.json(),
 	),
 	transports: [
-		transports.console,
 		transports.outputFile,
 		transports.errorFile,
 	],
 });
 
-if (process.env.NODE_ENV === "test")
-	for (const transport of logger.transports)
-		transport.silent = true;
+if (process.env.NODE_ENV !== "test")
+	logger.add(transports.console);
 
 export default logger;

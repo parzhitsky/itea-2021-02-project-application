@@ -20,4 +20,18 @@ jobs:
       - uses: actions/checkout@v2
 
       - run: npm ci
-      - run: npm t
+
+      - name: Run tests
+        id: run_tests
+        run: npm t
+        continue-on-error: true
+
+      - name: Save logs
+        uses: actions/upload-artifact@v3
+        with:
+          name: logs-${{ github.event.pull_request.head.sha }}
+          path: ./*.log
+
+      - name: Fail if needed
+        if: steps.run_tests.outcome == 'failure' # https://docs.github.com/en/actions/learn-github-actions/contexts#steps-context
+        run: exit 1
