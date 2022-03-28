@@ -8,7 +8,7 @@ import createUser from "./create-user.controller";
 class UserServiceMock implements Pick<UserService, "create"> {
 	@Logged()
 	async create(props: UserTypeCreation): Promise<UserType> {
-		const date = "2021-06-08T19:28:29.517Z";
+		const date = "2021-06-07T19:28:29.517Z";
 
 		return {
 			...props,
