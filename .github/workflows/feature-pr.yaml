@@ -27,7 +27,7 @@ jobs:
       - name: Save test results
         uses: actions/upload-artifact@v3
         with:
-          name: test-results-${{ github.sha }}
+          name: test-results-${{ github.event.pull_request.head.sha }}
           path: ./*.log
 
       - name: Fail if needed
