@@ -2,7 +2,7 @@ import type { Level } from "./log/logger";
 
 declare global {
 	interface Constructor<Instance extends object = object> {
-		new (...args: unknown[]): Instance;
+		new (...args: never[]): Instance;
 	}
 }
 
