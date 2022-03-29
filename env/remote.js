@@ -13,5 +13,3 @@ env.load({
 	path: path.resolve(__dirname, ".env.remote"),
 	silent: false,
 });
-
-console.log(process.env);
