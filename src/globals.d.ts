@@ -11,6 +11,7 @@ declare global {
 		interface ProcessEnv {
 			readonly NODE_ENV: "production" | "development" | "test";
 			readonly PORT: string;
+			readonly HEROKU_BRANCH: string;
 			readonly DATABASE_URL: string;
 			readonly DATABASE_CONNECT_TIMEOUT: string;
 			readonly LOGGER_LEVEL: Level;
