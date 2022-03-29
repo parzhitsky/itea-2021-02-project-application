@@ -12,7 +12,6 @@ env.load({
 	...options,
 	path: path.resolve(__dirname, ".env.remote"),
 	silent: false,
-	errorOnMissing: true,
 });
 
 console.log(process.env);
