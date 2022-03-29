@@ -1,4 +1,3 @@
-import fetch from "node-fetch";
 import Logged from "../log/logged.decorator";
 import logger from "../log/logger";
 
@@ -50,6 +49,8 @@ export default class VersionSetter {
 			.replace("{owner}", this.repoOwner)
 			.replace("{repo}", this.repoName)
 			.replace("{branch}", process.env.HEROKU_BRANCH);
+
+		const { default: fetch } = await import("node-fetch");
 
 		const response = await fetch(commitsUrl);
 
