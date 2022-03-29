@@ -11,4 +11,7 @@ const { options } = require("./common");
 env.load({
 	...options,
 	path: path.resolve(__dirname, ".env.remote"),
+	silent: false,
 });
+
+console.log(process.env);

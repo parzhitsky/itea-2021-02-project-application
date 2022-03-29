@@ -37,6 +37,15 @@ export default class HealthService extends Service {
 		() => getConnection() != null,
 	];
 
+	/**
+	 * @deprecated This method should not exist
+	 * @see https://stackoverflow.com/q/71627955/4554883
+	 */
+	@Logged({ level: "debug" })
+	protected async initializeGitCommitHash(): Promise<void> {
+		// ...
+	}
+
 	@Logged()
 	getStatus(): Status {
 		const results = this.checks.map((check) => check());
