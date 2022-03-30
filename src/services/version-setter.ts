@@ -7,7 +7,7 @@ const API_COMMITS_URL = "https://api.github.com/repos/{owner}/{repo}/commits/{br
 
 /** @private */
 function hasSHA(value: unknown): value is { sha: string } {
-	return value != null && "sha" in (value as {}) && (value as { sha: unknown }).sha === "string";
+	return value != null && "sha" in (value as {}) && typeof (value as { sha: unknown }).sha === "string";
 }
 
 /** @private */
