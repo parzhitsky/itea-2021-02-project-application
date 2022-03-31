@@ -2,23 +2,19 @@
 
 ## Environments and branches
 
-### 🔴 Production
+### 🔴 Production [&rarr;](https://itea-2021-02-app.herokuapp.com/)
 
 Production environment "lives" on the `main` branch. Progressing the codebase to production is possible only from `develop` branch and only through Heroku UI.
 
-<!-- TODO: add Heroku app ID (?) -->
-
-### 🟡 Staging
+### 🟡 Staging [&rarr;](https://itea-2021-02-app-staging.herokuapp.com/)
 
 Staging environment is deployed from the `develop` branch. Progressing the codebase to staging is possible only through merging feature pull requests on GitHub.
-
-<!-- TODO: add Heroku app ID (?) -->
 
 ### 🔵 Development
 
 Development environment is taken from various feature branches, such as `feat/*`, `fix/*` etc. Depending on whether the branch is deployed to Heroku, it is either a local development environment (codebase on the developer's local machine) or remote development environment (deployed codebase).
 
-### 🟢 Playground
+### 🟢 Playground [&rarr;](./src/playground.ts)
 
 Playground environment is basically just a file on local development machine. It is used to quickly try out the project from the code's perspective (see **Scripts** section below).
 
