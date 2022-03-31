@@ -19,18 +19,20 @@ interface FetchedHash {
 }
 
 /** @private */
-class VersionSetterInitResult {
-	locationLocal: string | undefined;
-	fetchedFromLocal = false;
-	reasonNotFetchedFromLocal?: unknown;
-	locationRemote: string | undefined;
-	fetchedFromRemote = false;
-	reasonNotFetchedFromRemote?: unknown;
+class FetchHashSource {
+	location: string | undefined;
+	fetched = false;
+	reasonNotFetched?: unknown;
+}
 
-	error?: HashNotFetchedError;
+/** @private */
+class FetchHashResult {
+	readonly local = new FetchHashSource();
+	readonly remote = new FetchHashSource();
+	error?: FetchHashError;
 
 	get fetched(): boolean {
-		return this.fetchedFromLocal || this.fetchedFromRemote;
+		return this.local.fetched || this.remote.fetched;
 	}
 }
 
@@ -59,7 +61,7 @@ export default class VersionSetter {
 	protected readonly nonShaCharacterPattern = /[^0-9a-f]/gi;
 	protected readonly commitShaPattern = /^[0-9a-f]{40}$/i;
 
-	protected readonly initResult = new VersionSetterInitResult();
+	protected readonly fetchHashResult = new FetchHashResult();
 	protected initStarted = false;
 	protected afterInitSet = false;
 
@@ -68,13 +70,13 @@ export default class VersionSetter {
 	protected versionValue: string | undefined;
 
 	protected get versionSetStatus(): VersionSetStatus {
-		return this.versionValue != null ? "set" : this.initResult.error ? "failed" : "unset";
+		return this.versionValue != null ? "set" : this.fetchHashResult.error != null ? "failed" : "unset";
 	}
 
 	@Logged({ level: "debug" })
 	protected async fetchHashFromLocalRepo(): Promise<FetchedHash> {
 		if (!exists(this.localGitOrigHeadFilePath))
-			throw new VersionSetterInitError("local .git/ORIG_HEAD file is not found", {
+			throw new VersionSetError("local .git/ORIG_HEAD file is not found", {
 				filePath: this.localGitOrigHeadFilePath,
 			});
 
@@ -82,7 +84,7 @@ export default class VersionSetter {
 		const sha = content.replace(this.nonShaCharacterPattern, "");
 
 		if (!this.commitShaPattern.test(sha))
-			throw new VersionSetterInitError("the input doesn't match commit SHA pattern", {
+			throw new VersionSetError("the input doesn't match commit SHA pattern", {
 				input: sha,
 				pattern: this.commitShaPattern,
 			});
@@ -99,7 +101,7 @@ export default class VersionSetter {
 		const result = await response.json();
 
 		if (!response.ok)
-			throw new VersionSetterInitError("response status is not 2xx", {
+			throw new VersionSetError("response status is not 2xx", {
 				url: response.url,
 				status: response.status,
 				statusText: response.statusText,
@@ -107,7 +109,7 @@ export default class VersionSetter {
 			});
 
 		if (!hasSHA(result))
-			throw new VersionSetterInitError("commit SHA not found in the result", result);
+			throw new VersionSetError("commit SHA not found in the result", result);
 
 		return {
 			value: result.sha,
@@ -122,27 +124,27 @@ export default class VersionSetter {
 		// try fetch from local repo
 		try {
 			({ value, location } = await this.fetchHashFromLocalRepo());
-			this.initResult.fetchedFromLocal = true;
-			this.initResult.locationLocal = location;
+			this.fetchHashResult.local.fetched = true;
+			this.fetchHashResult.local.location = location;
 		} catch (error) {
-			this.initResult.reasonNotFetchedFromLocal = error;
+			this.fetchHashResult.local.reasonNotFetched = error;
 		}
 
 		// if failed, try fetch from remote repo
-		if (!this.initResult.fetched)
+		if (!this.fetchHashResult.fetched)
 			try {
 				({ value, location } = await this.fetchHashFromRemoteRepo());
-				this.initResult.fetchedFromRemote = true;
-				this.initResult.locationRemote = location;
+				this.fetchHashResult.remote.fetched = true;
+				this.fetchHashResult.remote.location = location;
 			} catch (error) {
-				this.initResult.reasonNotFetchedFromRemote = error;
+				this.fetchHashResult.remote.reasonNotFetched = error;
 			}
 
 		// if still failed, don't fetch
-		if (!this.initResult.fetched)
-			this.initResult.error = new HashNotFetchedError(
-				this.initResult.reasonNotFetchedFromLocal,
-				this.initResult.reasonNotFetchedFromRemote,
+		if (!this.fetchHashResult.fetched)
+			this.fetchHashResult.error = new FetchHashError(
+				this.fetchHashResult.local.reasonNotFetched,
+				this.fetchHashResult.remote.reasonNotFetched,
 			);
 
 		return value;
@@ -158,11 +160,11 @@ export default class VersionSetter {
 	}
 
 	@Logged({ level: "debug" })
-	afterInit(callback: (result: VersionSetterInitResult) => void): this {
+	afterInit(callback: (result: FetchHashResult) => void): this {
 		if (this.afterInitSet)
 			throw new DuplicateAfterInitHookError();
 
-		this.didInit.then(() => callback(this.initResult));
+		this.didInit.then(() => callback(this.fetchHashResult));
 		this.afterInitSet = true;
 
 		return this;
@@ -183,16 +185,16 @@ export class DuplicateAfterInitHookError extends global.Error {
 	}
 }
 
-export class VersionSetterInitError extends global.Error {
+export class VersionSetError extends global.Error {
 	constructor(
 		public readonly hint: string,
 		public readonly payload?: unknown,
 	) {
-		super("Failed to initialize version setter");
+		super("Failed to set version");
 	}
 }
 
-export class HashNotFetchedError extends global.Error {
+export class FetchHashError extends global.Error {
 	constructor(
 		public readonly local: unknown,
 		public readonly remote: unknown,
