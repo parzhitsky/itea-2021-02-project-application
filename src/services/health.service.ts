@@ -1,4 +1,4 @@
-import { getConnection } from "../db/connect";
+import { Connection, getConnection } from "../db/connect";
 import Logged from "../log/logged.decorator";
 import logger from "../log/logger";
 import Service from "./abstract.service";
@@ -29,6 +29,7 @@ interface Status {
 	healthy: boolean;
 	message: Message;
 	version: Version; // FIXME: this should be a `string`
+	dbConnection: Connection | null;
 }
 
 export default class HealthService extends Service {
@@ -61,6 +62,7 @@ export default class HealthService extends Service {
 		const healthy = healthFactor === 1;
 		const message = healthy ? MESSAGE_HEALTHY : MESSAGE_GENERIC;
 		const version = this.versionSetter.version;
+		const dbConnection = getConnection();
 
 		return {
 			checksTotal,
@@ -69,6 +71,7 @@ export default class HealthService extends Service {
 			healthy,
 			message,
 			version,
+			dbConnection,
 		};
 	}
 }
