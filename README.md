@@ -32,7 +32,7 @@ http://localhost:8081/
 
 #### 🌎 Remote environment
 
-To deploy changes remotely, [create a feature pull request](https://github.com/parzhitsky/itea-2021-02-project-application/compare) (from feature branch to `develop`). After the modified code passes all required checks (e.g., tests), it will be deployed as a separate Heroku app at the location:
+To deploy changes remotely, [create a feature pull request](https://github.com/parzhitsky/itea-2021-02-project-application/compare) (from feature branch to `develop`). After all required checks (e.g., tests) are passed, the changes will be deployed as a separate Heroku app at:
 
 ```
 https://itea-2021-02-app-pr-{GITHUB_PR_NUMBER}.herokuapp.com/
