@@ -8,7 +8,7 @@ function hasSHA(value: unknown): value is { sha: string } {
 }
 
 /** @private */
-abstract class HashFetcher {
+abstract class FetchHashWorker {
 	abstract readonly location: string;
 	fetched = false;
 	fetchError?: unknown;
@@ -18,9 +18,9 @@ abstract class HashFetcher {
 	@Logged({ level: "debug" })
 	async fetch(): Promise<string | null> {
 		try {
-			const value = await this.doFetch();
+			const hash = await this.doFetch();
 			this.fetched = true;
-			return value;
+			return hash;
 		} catch (error) {
 			this.fetchError = error;
 			return null;
@@ -29,7 +29,7 @@ abstract class HashFetcher {
 }
 
 /** @private */
-class LocalHashFetcher extends HashFetcher {
+class FetchHashWorkerLocal extends FetchHashWorker {
 	override readonly location = "(git CLI command)";
 
 	@Logged({ level: "debug" })
@@ -40,7 +40,7 @@ class LocalHashFetcher extends HashFetcher {
 			throw result.error;
 
 		if (result.stdout == null)
-			throw new VersionSetError("no output from spawn", result);
+			throw new FetchHashError("no output from spawn", result);
 
 		const sha = result.stdout.slice(0, -1);
 
@@ -49,7 +49,7 @@ class LocalHashFetcher extends HashFetcher {
 }
 
 /** @private */
-class RemoteHashFetcher extends HashFetcher {
+class FetchHashWorkerRemote extends FetchHashWorker {
 	override readonly location =
 		`https://api.github.com/repos/parzhitsky/itea-2021-02-project-application/commits/${process.env.HEROKU_BRANCH}`;
 
@@ -59,7 +59,7 @@ class RemoteHashFetcher extends HashFetcher {
 		const result = await response.json();
 
 		if (!response.ok)
-			throw new VersionSetError("response status is not 2xx", {
+			throw new FetchHashError("response status is not 2xx", {
 				url: response.url,
 				status: response.status,
 				statusText: response.statusText,
@@ -67,18 +67,18 @@ class RemoteHashFetcher extends HashFetcher {
 			});
 
 		if (!hasSHA(result))
-			throw new VersionSetError("commit SHA not found in the result", result);
+			throw new FetchHashError("commit SHA not found in the result", result);
 
 		return result.sha;
 	}
 }
 
 /** @private */
-class FetchHashResult {
-	readonly local = new LocalHashFetcher();
-	readonly remote = new RemoteHashFetcher();
+class VersionSetterStatus {
+	readonly local = new FetchHashWorkerLocal();
+	readonly remote = new FetchHashWorkerRemote();
 
-	error?: FetchHashError;
+	error?: FetchHashAggregatedError;
 
 	get fetched(): boolean {
 		return this.local.fetched || this.remote.fetched;
@@ -86,11 +86,20 @@ class FetchHashResult {
 }
 
 /** @private */
-type VersionSetStatus = "unset" | "set" | "failed";
+type VersionStatus = "unset" | "set" | "failed";
 
-export interface Version {
+export class Version {
 	value: string | undefined;
-	setStatus: VersionSetStatus;
+	status: VersionStatus = "unset";
+}
+
+/** @private */
+interface AfterInitCallback {
+	(
+		this: unknown,
+		version: Readonly<Version>,
+		status: Readonly<VersionSetterStatus>,
+	): void;
 }
 
 /**
@@ -98,34 +107,32 @@ export interface Version {
  * @see https://stackoverflow.com/q/71627955/4554883
  */
 export default class VersionSetter {
-	protected readonly fetchHashResult = new FetchHashResult();
+	protected readonly status = new VersionSetterStatus();
+	protected readonly _version = new Version();
+
+	get version(): Readonly<Version> {
+		return this._version;
+	}
+
 	protected initStarted = false;
 	protected afterInitSet = false;
-	protected versionValue: string | undefined;
-
-	protected get versionSetStatus(): VersionSetStatus {
-		return this.versionValue != null ? "set" : this.fetchHashResult.error != null ? "failed" : "unset";
-	}
 
 	readonly didInit = this.init();
 
 	@Logged({ level: "debug" })
 	protected async fetchHash(): Promise<string | undefined> {
-		const strategy = [
-			this.fetchHashResult.local,
-			this.fetchHashResult.remote,
-		] as const;
+		const strategy = [ this.status.local, this.status.remote ] as const;
 
-		for (const source of strategy) {
-			const value = await source.fetch();
+		for (const worker of strategy) {
+			const hash = await worker.fetch();
 
-			if (value != null)
-				return value;
+			if (hash != null)
+				return hash;
 		}
 
-		this.fetchHashResult.error = new FetchHashError(
-			this.fetchHashResult.local.fetchError,
-			this.fetchHashResult.remote.fetchError,
+		this.status.error = new FetchHashAggregatedError(
+			this.status.local.fetchError,
+			this.status.remote.fetchError,
 		);
 
 		return undefined;
@@ -137,26 +144,22 @@ export default class VersionSetter {
 			return; // prevent overriding results
 
 		this.initStarted = true;
-		this.versionValue = await this.fetchHash();
+
+		const hash = await this.fetchHash();
+
+		this._version.value = hash;
+		this._version.status = hash != null ? "set" : this.status.error != null ? "failed" : "unset";
 	}
 
 	@Logged({ level: "debug" })
-	afterInit(callback: (result: FetchHashResult) => void): this {
+	afterInit(callback: AfterInitCallback): this {
 		if (this.afterInitSet)
 			throw new DuplicateAfterInitHookError();
 
-		this.didInit.then(() => callback(this.fetchHashResult));
+		this.didInit.then(() => callback(this.version, this.status));
 		this.afterInitSet = true;
 
 		return this;
-	}
-
-	@Logged({ level: "debug" })
-	getVersion(): Version {
-		return {
-			value: this.versionValue,
-			setStatus: this.versionSetStatus,
-		};
 	}
 }
 
@@ -166,16 +169,16 @@ export class DuplicateAfterInitHookError extends global.Error {
 	}
 }
 
-export class VersionSetError extends global.Error {
+export class FetchHashError extends global.Error {
 	constructor(
 		public readonly hint: string,
 		public readonly payload?: unknown,
 	) {
-		super("Failed to set version");
+		super("Failed to fetch hash");
 	}
 }
 
-export class FetchHashError extends global.Error {
+export class FetchHashAggregatedError extends global.Error {
 	constructor(
 		public readonly local: unknown,
 		public readonly remote: unknown,

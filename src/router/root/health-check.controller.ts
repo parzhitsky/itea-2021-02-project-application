@@ -21,10 +21,7 @@ export default function healthCheck({ healthService }: Deps): RequestHandler[] {
 					passed: status.checksPassed,
 					ratio: status.healthFactor,
 				},
-				version: {
-					value: status.version.value,
-					setStatus: status.version.setStatus,
-				},
+				version: status.version,
 				db: {
 					connection: getConnection(),
 				},

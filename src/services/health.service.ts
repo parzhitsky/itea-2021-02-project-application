@@ -33,14 +33,14 @@ interface Status {
 
 export default class HealthService extends Service {
 	protected readonly versionSetter = new VersionSetter()
-		.afterInit((fetchResult) => {
-			logger.debug("fetchResult:", fetchResult);
+		.afterInit((version, status) => {
+			logger.debug("VersionSetter status:", status);
 
-			if (fetchResult.error)
-				logger.warn(fetchResult.error);
+			if (status.error)
+				logger.warn(status.error);
 
 			else
-				logger.info("Version:", this.versionSetter.getVersion());
+				logger.info("Version:", version);
 		});
 
 	protected readonly checks: Check[] = [
@@ -60,7 +60,7 @@ export default class HealthService extends Service {
 		const healthFactor = checksPassed / checksTotal;
 		const healthy = healthFactor === 1;
 		const message = healthy ? MESSAGE_HEALTHY : MESSAGE_GENERIC;
-		const version = this.versionSetter.getVersion();
+		const version = this.versionSetter.version;
 
 		return {
 			checksTotal,
