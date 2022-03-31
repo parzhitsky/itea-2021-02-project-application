@@ -32,6 +32,7 @@ abstract class HashFetcher {
 class LocalHashFetcher extends HashFetcher {
 	override readonly location = "(git CLI command)";
 
+	@Logged({ level: "debug" })
 	protected override async doFetch(): Promise<string> {
 		const result = spawnSync("git", [ "rev-parse", "@" ], { encoding: "utf8" }) as SpawnResult<string | null>;
 
@@ -52,6 +53,7 @@ class RemoteHashFetcher extends HashFetcher {
 	override readonly location =
 		`https://api.github.com/repos/parzhitsky/itea-2021-02-project-application/commits/${process.env.HEROKU_BRANCH}`;
 
+	@Logged({ level: "debug" })
 	protected override async doFetch(): Promise<string> {
 		const response = await fetch(this.location);
 		const result = await response.json();
