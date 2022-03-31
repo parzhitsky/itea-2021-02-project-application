@@ -1,4 +1,5 @@
 import fetch = require("make-fetch-happen");
+import { existsSync as exists } from "fs";
 import { readFile as read } from "fs/promises";
 import { resolve } from "path";
 import Logged from "../log/logged.decorator";
@@ -12,9 +13,11 @@ function hasSHA(value: unknown): value is { sha: string } {
 }
 
 /** @private */
-class InitResult {
+class VersionSetterInitResult {
+	locationLocal: string | undefined;
 	fetchedFromLocal = false;
 	reasonNotFetchedFromLocal?: unknown;
+	locationRemote: string | undefined;
 	fetchedFromRemote = false;
 	reasonNotFetchedFromRemote?: unknown;
 
@@ -47,7 +50,10 @@ export default class VersionSetter {
 		.replace("{repo}", this.remoteRepoName)
 		.replace("{branch}", process.env.HEROKU_BRANCH);
 
-	protected readonly initResult = new InitResult();
+	protected readonly nonShaCharacterPattern = /[^0-9a-f]/gi;
+	protected readonly commitShaPattern = /^[0-9a-f]{40}$/i;
+
+	protected readonly initResult = new VersionSetterInitResult();
 	protected initStarted = false;
 	protected afterInitSet = false;
 
@@ -61,8 +67,23 @@ export default class VersionSetter {
 
 	@Logged({ level: "debug" })
 	protected async fetchHashFromLocalRepo(): Promise<string> {
+		this.initResult.locationLocal = this.localGitOrigHeadFilePath;
+
+		if (!exists(this.localGitOrigHeadFilePath))
+			throw new VersionSetterInitError("local .git/ORIG_HEAD file is not found", {
+				filePath: this.localGitOrigHeadFilePath,
+			});
+
 		const content = await read(this.localGitOrigHeadFilePath, "utf8");
-		const sha = content.replace(/[^0-9a-f]/gi, "");
+		const sha = content.replace(this.nonShaCharacterPattern, "");
+
+		if (!this.commitShaPattern.test(sha))
+			throw new VersionSetterInitError("the input doesn't match commit SHA pattern", {
+				input: sha,
+				pattern: this.commitShaPattern,
+			});
+
+		this.initResult.fetchedFromLocal = true;
 
 		return sha;
 	}
@@ -71,6 +92,8 @@ export default class VersionSetter {
 	protected async fetchHashFromRemoteRepo(): Promise<string> {
 		const response = await fetch(this.commitsUrl);
 		const result = await response.json();
+
+		this.initResult.locationRemote = response.url;
 
 		if (!response.ok)
 			throw new VersionSetterInitError("response status is not 2xx", {
@@ -82,6 +105,8 @@ export default class VersionSetter {
 
 		if (!hasSHA(result))
 			throw new VersionSetterInitError("commit SHA not found in the result", result);
+
+		this.initResult.fetchedFromRemote = true;
 
 		return result.sha;
 	}
@@ -97,15 +122,13 @@ export default class VersionSetter {
 
 		try {
 			hash = await this.fetchHashFromLocalRepo();
-			this.initResult.fetchedFromLocal = true;
 		} catch (error) {
 			this.initResult.reasonNotFetchedFromLocal = error;
 		}
 
-		if (!this.initResult.fetchedFromLocal)
+		if (!this.initResult.fetched)
 			try {
 				hash = await this.fetchHashFromRemoteRepo();
-				this.initResult.fetchedFromRemote = true;
 			} catch (error) {
 				this.initResult.reasonNotFetchedFromRemote = error;
 			}
@@ -120,7 +143,7 @@ export default class VersionSetter {
 	}
 
 	@Logged({ level: "debug" })
-	afterInit(callback: (result: InitResult) => void): this {
+	afterInit(callback: (result: VersionSetterInitResult) => void): this {
 		if (this.afterInitSet)
 			throw new DuplicateAfterInitHookError();
 
