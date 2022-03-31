@@ -33,11 +33,11 @@ interface Status {
 
 export default class HealthService extends Service {
 	protected readonly versionSetter = new VersionSetter()
-		.afterInit((initResult) => {
-			logger.debug(initResult);
+		.afterInit((fetchResult) => {
+			logger.debug("fetchResult:", fetchResult);
 
-			if (initResult.error)
-				logger.warn(initResult.error);
+			if (fetchResult.error)
+				logger.warn(fetchResult.error);
 
 			else
 				logger.info("Version:", this.versionSetter.getVersion());

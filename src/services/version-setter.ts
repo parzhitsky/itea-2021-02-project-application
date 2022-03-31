@@ -1,11 +1,6 @@
 import fetch = require("make-fetch-happen");
-import { existsSync as exists } from "fs";
-import { readFile as read } from "fs/promises";
-import { resolve } from "path";
+import { spawnSync, SpawnSyncReturns as SpawnResult } from "child_process";
 import Logged from "../log/logged.decorator";
-
-/** @private */
-const API_COMMITS_URL = "https://api.github.com/repos/{owner}/{repo}/commits/{branch}";
 
 /** @private */
 function hasSHA(value: unknown): value is { sha: string } {
@@ -13,22 +8,74 @@ function hasSHA(value: unknown): value is { sha: string } {
 }
 
 /** @private */
-interface FetchedHash {
-	value: string;
-	location: string;
+abstract class HashFetcher {
+	abstract readonly location: string;
+	fetched = false;
+	fetchError?: unknown;
+
+	protected abstract doFetch(): Promise<string>;
+
+	@Logged({ level: "debug" })
+	async fetch(): Promise<string | null> {
+		try {
+			const value = await this.doFetch();
+			this.fetched = true;
+			return value;
+		} catch (error) {
+			this.fetchError = error;
+			return null;
+		}
+	}
 }
 
 /** @private */
-class FetchHashSource {
-	location: string | undefined;
-	fetched = false;
-	reasonNotFetched?: unknown;
+class LocalHashFetcher extends HashFetcher {
+	override readonly location = "(git CLI command)";
+
+	protected override async doFetch(): Promise<string> {
+		const result = spawnSync("git", [ "rev-parse", "@" ], { encoding: "utf8" }) as SpawnResult<string | null>;
+
+		if (result.error != null)
+			throw result.error;
+
+		if (result.stdout == null)
+			throw new VersionSetError("no output from spawn", result);
+
+		const sha = result.stdout.slice(0, -1);
+
+		return sha;
+	}
+}
+
+/** @private */
+class RemoteHashFetcher extends HashFetcher {
+	override readonly location =
+		`https://api.github.com/repos/parzhitsky/itea-2021-02-project-application/commits/${process.env.HEROKU_BRANCH}`;
+
+	protected override async doFetch(): Promise<string> {
+		const response = await fetch(this.location);
+		const result = await response.json();
+
+		if (!response.ok)
+			throw new VersionSetError("response status is not 2xx", {
+				url: response.url,
+				status: response.status,
+				statusText: response.statusText,
+				body: result,
+			});
+
+		if (!hasSHA(result))
+			throw new VersionSetError("commit SHA not found in the result", result);
+
+		return result.sha;
+	}
 }
 
 /** @private */
 class FetchHashResult {
-	readonly local = new FetchHashSource();
-	readonly remote = new FetchHashSource();
+	readonly local = new LocalHashFetcher();
+	readonly remote = new RemoteHashFetcher();
+
 	error?: FetchHashError;
 
 	get fetched(): boolean {
@@ -49,105 +96,37 @@ export interface Version {
  * @see https://stackoverflow.com/q/71627955/4554883
  */
 export default class VersionSetter {
-	protected readonly localGitOrigHeadFilePath = resolve(__dirname, "../..", ".git/ORIG_HEAD");
-	protected readonly remoteRepoOwner = "parzhitsky";
-	protected readonly remoteRepoName = "itea-2021-02-project-application";
-
-	protected readonly commitsUrl = API_COMMITS_URL
-		.replace("{owner}", this.remoteRepoOwner)
-		.replace("{repo}", this.remoteRepoName)
-		.replace("{branch}", process.env.HEROKU_BRANCH);
-
-	protected readonly nonShaCharacterPattern = /[^0-9a-f]/gi;
-	protected readonly commitShaPattern = /^[0-9a-f]{40}$/i;
-
 	protected readonly fetchHashResult = new FetchHashResult();
 	protected initStarted = false;
 	protected afterInitSet = false;
-
-	readonly didInit = this.init();
-
 	protected versionValue: string | undefined;
 
 	protected get versionSetStatus(): VersionSetStatus {
 		return this.versionValue != null ? "set" : this.fetchHashResult.error != null ? "failed" : "unset";
 	}
 
-	@Logged({ level: "debug" })
-	protected async fetchHashFromLocalRepo(): Promise<FetchedHash> {
-		if (!exists(this.localGitOrigHeadFilePath))
-			throw new VersionSetError("local .git/ORIG_HEAD file is not found", {
-				filePath: this.localGitOrigHeadFilePath,
-			});
-
-		const content = await read(this.localGitOrigHeadFilePath, "utf8");
-		const sha = content.replace(this.nonShaCharacterPattern, "");
-
-		if (!this.commitShaPattern.test(sha))
-			throw new VersionSetError("the input doesn't match commit SHA pattern", {
-				input: sha,
-				pattern: this.commitShaPattern,
-			});
-
-		return {
-			value: sha,
-			location: this.localGitOrigHeadFilePath,
-		};
-	}
-
-	@Logged({ level: "debug" })
-	protected async fetchHashFromRemoteRepo(): Promise<FetchedHash> {
-		const response = await fetch(this.commitsUrl);
-		const result = await response.json();
-
-		if (!response.ok)
-			throw new VersionSetError("response status is not 2xx", {
-				url: response.url,
-				status: response.status,
-				statusText: response.statusText,
-				body: result,
-			});
-
-		if (!hasSHA(result))
-			throw new VersionSetError("commit SHA not found in the result", result);
-
-		return {
-			value: result.sha,
-			location: response.url,
-		};
-	}
+	readonly didInit = this.init();
 
 	@Logged({ level: "debug" })
 	protected async fetchHash(): Promise<string | undefined> {
-		let value, location;
+		const strategy = [
+			this.fetchHashResult.local,
+			this.fetchHashResult.remote,
+		] as const;
 
-		// try fetch from local repo
-		try {
-			({ value, location } = await this.fetchHashFromLocalRepo());
-			this.fetchHashResult.local.fetched = true;
-			this.fetchHashResult.local.location = location;
-		} catch (error) {
-			this.fetchHashResult.local.reasonNotFetched = error;
+		for (const source of strategy) {
+			const value = await source.fetch();
+
+			if (value != null)
+				return value;
 		}
 
-		// if failed, try fetch from remote repo
-		if (!this.fetchHashResult.fetched)
-			try {
-				({ value, location } = await this.fetchHashFromRemoteRepo());
-				this.fetchHashResult.remote.fetched = true;
-				this.fetchHashResult.remote.location = location;
-			} catch (error) {
-				this.fetchHashResult.remote.reasonNotFetched = error;
-			}
+		this.fetchHashResult.error = new FetchHashError(
+			this.fetchHashResult.local.fetchError,
+			this.fetchHashResult.remote.fetchError,
+		);
 
-		// if still failed, don't fetch
-		if (!this.fetchHashResult.fetched)
-			this.fetchHashResult.error = new FetchHashError(
-				this.fetchHashResult.local.reasonNotFetched,
-				this.fetchHashResult.remote.reasonNotFetched,
-			);
-
-		return value;
+		return undefined;
 	}
 
 	@Logged({ level: "debug" })
