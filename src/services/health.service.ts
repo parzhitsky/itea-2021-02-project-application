@@ -1,6 +1,8 @@
 import { getConnection } from "../db/connect";
 import Logged from "../log/logged.decorator";
+import logger from "../log/logger";
 import Service from "./abstract.service";
+import VersionSetter, { type Version } from "./version-setter";
 
 /** @private */
 interface Check {
@@ -26,10 +28,20 @@ interface Status {
 	healthFactor: number; // checksPassed ÷ checksTotal = [0..1]
 	healthy: boolean;
 	message: Message;
+	version: Version; // FIXME: this should be a `string`
 }
 
 export default class HealthService extends Service {
-	private readonly checks: Check[] = [
+	protected readonly versionSetter = new VersionSetter()
+		.afterInit(({ error }) => {
+			if (error)
+				logger.warn(error);
+
+			else
+				logger.info("Version:", this.versionSetter.getVersion());
+		});
+
+	protected readonly checks: Check[] = [
 		// app is running
 		() => true,
 
@@ -46,6 +58,7 @@ export default class HealthService extends Service {
 		const healthFactor = checksPassed / checksTotal;
 		const healthy = healthFactor === 1;
 		const message = healthy ? MESSAGE_HEALTHY : MESSAGE_GENERIC;
+		const version = this.versionSetter.getVersion();
 
 		return {
 			checksTotal,
@@ -53,6 +66,7 @@ export default class HealthService extends Service {
 			healthFactor,
 			healthy,
 			message,
+			version,
 		};
 	}
 }

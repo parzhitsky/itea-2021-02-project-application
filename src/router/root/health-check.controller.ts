@@ -21,7 +21,10 @@ export default function healthCheck({ healthService }: Deps): RequestHandler[] {
 					passed: status.checksPassed,
 					ratio: status.healthFactor,
 				},
-				version: process.env.HEROKU_SLUG_COMMIT,
+				version: {
+					value: status.version.value,
+					setStatus: status.version.setStatus,
+				},
 				db: {
 					connection: getConnection(),
 				},
