@@ -2,23 +2,45 @@
 
 ## Environments and branches
 
-### 🔴 Production
+### 🔴 Production [&rarr;](https://itea-2021-02-app.herokuapp.com/)
 
 Production environment "lives" on the `main` branch. Progressing the codebase to production is possible only from `develop` branch and only through Heroku UI.
 
-<!-- TODO: add Heroku app ID (?) -->
-
-### 🟡 Staging
+### 🟡 Staging [&rarr;](https://itea-2021-02-app-staging.herokuapp.com/)
 
 Staging environment is deployed from the `develop` branch. Progressing the codebase to staging is possible only through merging feature pull requests on GitHub.
-
-<!-- TODO: add Heroku app ID (?) -->
 
 ### 🔵 Development
 
 Development environment is taken from various feature branches, such as `feat/*`, `fix/*` etc. Depending on whether the branch is deployed to Heroku, it is either a local development environment (codebase on the developer's local machine) or remote development environment (deployed codebase).
 
-### 🟢 Playground
+#### 💻 Local environment
+
+To deploy changes locally, run the server locally (see **Scripts** section below) and find the port number in the logs (usually it is `8081`):
+
+```log
+info:    ▪ Server is listening on port 8081
+```
+
+> Alternatively, just take the value of `process.env.PORT`, if it is known in advance
+
+Given the port, you can connect to local server using local URL:
+
+```
+http://localhost:8081/
+```
+
+#### 🌎 Remote environment
+
+To deploy changes remotely, [create a feature pull request](https://github.com/parzhitsky/itea-2021-02-project-application/compare) (from feature branch to `develop`). After all required checks (e.g., tests) are passed, the changes will be deployed as a separate Heroku app at:
+
+```
+https://itea-2021-02-app-pr-{GITHUB_PR_NUMBER}.herokuapp.com/
+```
+
+Thus, for example, [PR #5](https://github.com/parzhitsky/itea-2021-02-project-application/pull/5) would be deployed to https://itea-2021-02-app-pr-5.herokuapp.com/
+
+### 🟢 Playground [&rarr;](./src/playground.ts)
 
 Playground environment is basically just a file on local development machine. It is used to quickly try out the project from the code's perspective (see **Scripts** section below).
 
