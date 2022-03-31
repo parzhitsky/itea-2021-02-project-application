@@ -70,14 +70,15 @@ export default class VersionSetter {
 	@Logged({ level: "debug" })
 	protected async fetchHashFromRemoteRepo(): Promise<string> {
 		const response = await fetch(this.commitsUrl);
+		const result = await response.json();
 
 		if (!response.ok)
 			throw new VersionSetterInitError("response status is not 2xx", {
+				url: response.url,
 				status: response.status,
 				statusText: response.statusText,
+				body: result,
 			});
-
-		const result = await response.json();
 
 		if (!hasSHA(result))
 			throw new VersionSetterInitError("commit SHA not found in the result", result);
