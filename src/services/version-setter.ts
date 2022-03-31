@@ -13,6 +13,12 @@ function hasSHA(value: unknown): value is { sha: string } {
 }
 
 /** @private */
+interface FetchedHash {
+	value: string;
+	location: string;
+}
+
+/** @private */
 class VersionSetterInitResult {
 	locationLocal: string | undefined;
 	fetchedFromLocal = false;
@@ -66,9 +72,7 @@ export default class VersionSetter {
 	}
 
 	@Logged({ level: "debug" })
-	protected async fetchHashFromLocalRepo(): Promise<string> {
-		this.initResult.locationLocal = this.localGitOrigHeadFilePath;
-
+	protected async fetchHashFromLocalRepo(): Promise<FetchedHash> {
 		if (!exists(this.localGitOrigHeadFilePath))
 			throw new VersionSetterInitError("local .git/ORIG_HEAD file is not found", {
 				filePath: this.localGitOrigHeadFilePath,
@@ -83,17 +87,16 @@ export default class VersionSetter {
 				pattern: this.commitShaPattern,
 			});
 
-		this.initResult.fetchedFromLocal = true;
-
-		return sha;
+		return {
+			value: sha,
+			location: this.localGitOrigHeadFilePath,
+		};
 	}
 
 	@Logged({ level: "debug" })
-	protected async fetchHashFromRemoteRepo(): Promise<string> {
+	protected async fetchHashFromRemoteRepo(): Promise<FetchedHash> {
 		const response = await fetch(this.commitsUrl);
 		const result = await response.json();
-
-		this.initResult.locationRemote = response.url;
 
 		if (!response.ok)
 			throw new VersionSetterInitError("response status is not 2xx", {
@@ -106,9 +109,43 @@ export default class VersionSetter {
 		if (!hasSHA(result))
 			throw new VersionSetterInitError("commit SHA not found in the result", result);
 
-		this.initResult.fetchedFromRemote = true;
+		return {
+			value: result.sha,
+			location: response.url,
+		};
+	}
 
-		return result.sha;
+	@Logged({ level: "debug" })
+	protected async fetchHash(): Promise<string | undefined> {
+		let value, location;
+
+		// try fetch from local repo
+		try {
+			({ value, location } = await this.fetchHashFromLocalRepo());
+			this.initResult.fetchedFromLocal = true;
+			this.initResult.locationLocal = location;
+		} catch (error) {
+			this.initResult.reasonNotFetchedFromLocal = error;
+		}
+
+		// if failed, try fetch from remote repo
+		if (!this.initResult.fetched)
+			try {
+				({ value, location } = await this.fetchHashFromRemoteRepo());
+				this.initResult.fetchedFromRemote = true;
+				this.initResult.locationRemote = location;
+			} catch (error) {
+				this.initResult.reasonNotFetchedFromRemote = error;
+			}
+
+		// if still failed, don't fetch
+		if (!this.initResult.fetched)
+			this.initResult.error = new HashNotFetchedError(
+				this.initResult.reasonNotFetchedFromLocal,
+				this.initResult.reasonNotFetchedFromRemote,
+			);
+
+		return value;
 	}
 
 	@Logged({ level: "debug" })
@@ -117,29 +154,7 @@ export default class VersionSetter {
 			return; // prevent overriding results
 
 		this.initStarted = true;
-
-		let hash;
-
-		try {
-			hash = await this.fetchHashFromLocalRepo();
-		} catch (error) {
-			this.initResult.reasonNotFetchedFromLocal = error;
-		}
-
-		if (!this.initResult.fetched)
-			try {
-				hash = await this.fetchHashFromRemoteRepo();
-			} catch (error) {
-				this.initResult.reasonNotFetchedFromRemote = error;
-			}
-
-		this.versionValue = hash;
-
-		if (!this.initResult.fetched)
-			this.initResult.error = new HashNotFetchedError(
-				this.initResult.reasonNotFetchedFromLocal,
-				this.initResult.reasonNotFetchedFromRemote,
-			);
+		this.versionValue = await this.fetchHash();
 	}
 
 	@Logged({ level: "debug" })
