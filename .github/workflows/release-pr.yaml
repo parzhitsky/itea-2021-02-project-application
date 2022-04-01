@@ -1,0 +1,36 @@
+name: Test release PR
+
+env:
+  PORT: "8081"
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  JWT_TOKEN_SECRET: ${{ secrets.JWT_TOKEN_SECRET__GH_ACTIONS }}
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    environment: itea-2021-02-app-staging
+    name: Test
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+
+      - run: npm ci
+
+      - name: Run tests
+        id: run_tests
+        run: npm t
+        continue-on-error: true
+
+      - name: Save logs
+        uses: actions/upload-artifact@v3
+        with:
+          name: logs-${{ github.event.pull_request.head.sha }}
+          path: ./*.log
+
+      - name: Fail if needed
+        if: steps.run_tests.outcome == 'failure' # https://docs.github.com/en/actions/learn-github-actions/contexts#steps-context
+        run: exit 1
