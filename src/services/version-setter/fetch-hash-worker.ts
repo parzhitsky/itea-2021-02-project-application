@@ -13,6 +13,9 @@ function * entriesOf<Obj extends object>(obj: Obj): IterableIterator<readonly [ 
 		yield [ key, obj[key] ];
 }
 
+/** @private */
+const gitBranch = process.env.HEROKU_BRANCH;
+
 export default abstract class FetchHashWorker {
 	abstract readonly location: string;
 	fetched = false;
@@ -38,15 +41,16 @@ export class FetchHashWorkerLocal extends FetchHashWorker {
 
 	@Logged({ level: "debug" })
 	protected override async doFetch(): Promise<string> {
-		const result = spawnSync("git", [ "rev-parse", process.env.HEROKU_BRANCH ], { encoding: "utf8" }) as SpawnResult<string | null>;
+		const { stdout = null, stderr, error }: SpawnResult<string | null> =
+			spawnSync("git", [ "rev-parse", gitBranch ], { encoding: "utf8" });
 
-		if (result.error != null)
-			throw result.error;
+		if (error != null)
+			throw error;
 
-		const sha = result.stdout?.trim();
+		const sha = stdout?.trim() ?? "";
 
 		if (!sha)
-			throw new FetchHashError("no output from spawn", result);
+			throw new FetchHashError("spawn(...) yielded empty stdout", { stdout, stderr });
 
 		return sha;
 	}
@@ -54,7 +58,7 @@ export class FetchHashWorkerLocal extends FetchHashWorker {
 
 export class FetchHashWorkerRemote extends FetchHashWorker {
 	override readonly location =
-		`https://api.github.com/repos/parzhitsky/itea-2021-02-project-application/commits/${process.env.HEROKU_BRANCH}`;
+		`https://api.github.com/repos/parzhitsky/itea-2021-02-project-application/commits/${gitBranch}`;
 
 	@Logged({ level: "debug" })
 	protected override async doFetch(): Promise<string> {
