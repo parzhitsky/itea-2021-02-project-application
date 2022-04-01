@@ -38,7 +38,7 @@ export class FetchHashWorkerLocal extends FetchHashWorker {
 
 	@Logged({ level: "debug" })
 	protected override async doFetch(): Promise<string> {
-		const result = spawnSync("git", [ "rev-parse", "@" ], { encoding: "utf8" }) as SpawnResult<string | null>;
+		const result = spawnSync("git", [ "rev-parse", process.env.HEROKU_BRANCH ], { encoding: "utf8" }) as SpawnResult<string | null>;
 
 		if (result.error != null)
 			throw result.error;
