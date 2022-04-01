@@ -19,7 +19,7 @@ const gitBranch = process.env.HEROKU_BRANCH;
 export default abstract class FetchHashWorker {
 	abstract readonly location: string;
 	fetched = false;
-	fetchError?: unknown;
+	error?: FetchHashError;
 
 	protected abstract doFetch(): Promise<string>;
 
@@ -30,7 +30,12 @@ export default abstract class FetchHashWorker {
 			this.fetched = true;
 			return hash;
 		} catch (error) {
-			this.fetchError = error;
+			if (error instanceof FetchHashError)
+				this.error = error;
+
+			else
+				this.error = new FetchHashError("unknown error", { error });
+
 			return null;
 		}
 	}
@@ -45,12 +50,12 @@ export class FetchHashWorkerLocal extends FetchHashWorker {
 			spawnSync("git", [ "rev-parse", gitBranch ], { encoding: "utf8" });
 
 		if (error != null)
-			throw error;
+			throw new FetchHashError("spawn(…) resulted in an error", { error, stdout, stderr });
 
 		const sha = stdout?.trim() ?? "";
 
 		if (!sha)
-			throw new FetchHashError("spawn(...) yielded empty stdout", { stdout, stderr });
+			throw new FetchHashError("spawn(…) yielded empty stdout", { stdout, stderr });
 
 		return sha;
 	}
@@ -98,6 +103,6 @@ export class FetchHashAggregatedError extends global.Error {
 		super("Could not fetch hash of the latest commit");
 
 		for (const [ id, worker ] of entriesOf(workers))
-			this.errors[id] = worker.fetchError ?? null;
+			this.errors[id] = worker.error ?? null;
 	}
 }
