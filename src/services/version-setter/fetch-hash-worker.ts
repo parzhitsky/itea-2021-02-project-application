@@ -43,10 +43,10 @@ export class FetchHashWorkerLocal extends FetchHashWorker {
 		if (result.error != null)
 			throw result.error;
 
-		if (result.stdout == null)
-			throw new FetchHashError("no output from spawn", result);
+		const sha = result.stdout?.trim();
 
-		const sha = result.stdout.slice(0, -1);
+		if (!sha)
+			throw new FetchHashError("no output from spawn", result);
 
 		return sha;
 	}
