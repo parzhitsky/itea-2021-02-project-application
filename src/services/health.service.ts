@@ -1,4 +1,4 @@
-import { getConnection } from "../db/connect";
+import { Connection, getConnection } from "../db/connect";
 import Logged from "../log/logged.decorator";
 import logger from "../log/logger";
 import Service from "./abstract.service";
@@ -29,16 +29,19 @@ interface Status {
 	healthy: boolean;
 	message: Message;
 	version: Version; // FIXME: this should be a `string`
+	dbConnection: Connection | null;
 }
 
 export default class HealthService extends Service {
 	protected readonly versionSetter = new VersionSetter()
-		.afterInit(({ error }) => {
-			if (error)
-				logger.warn(error);
+		.afterInit((version, status) => {
+			logger.debug("VersionSetter status:", status);
+
+			if (status.error)
+				logger.warn(status.error);
 
 			else
-				logger.info("Version:", this.versionSetter.getVersion());
+				logger.info("Version:", version);
 		});
 
 	protected readonly checks: Check[] = [
@@ -58,7 +61,8 @@ export default class HealthService extends Service {
 		const healthFactor = checksPassed / checksTotal;
 		const healthy = healthFactor === 1;
 		const message = healthy ? MESSAGE_HEALTHY : MESSAGE_GENERIC;
-		const version = this.versionSetter.getVersion();
+		const version = this.versionSetter.version;
+		const dbConnection = getConnection();
 
 		return {
 			checksTotal,
@@ -67,6 +71,7 @@ export default class HealthService extends Service {
 			healthy,
 			message,
 			version,
+			dbConnection,
 		};
 	}
 }

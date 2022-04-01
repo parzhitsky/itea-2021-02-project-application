@@ -1,5 +1,4 @@
 import type { RequestHandler } from "express";
-import { getConnection } from "../../db/connect";
 import type HealthService from "../../services/health.service";
 
 /** @private */
@@ -21,12 +20,9 @@ export default function healthCheck({ healthService }: Deps): RequestHandler[] {
 					passed: status.checksPassed,
 					ratio: status.healthFactor,
 				},
-				version: {
-					value: status.version.value,
-					setStatus: status.version.setStatus,
-				},
+				version: status.version,
 				db: {
-					connection: getConnection(),
+					connection: status.dbConnection,
 				},
 			});
 		},
