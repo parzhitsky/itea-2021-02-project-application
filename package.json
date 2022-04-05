@@ -26,10 +26,10 @@
     "build": "npm run build:only",
     "postbuild": "del-cli dist/**/*.type.js* dist/**/typings/**/*.js*",
     "lint": "eslint --ext .js,.ts src",
-    "start": "node --require source-map-support/register --require ./env/remote.js --require ./dist/enable-strict-mode.js dist/index.js",
-    "dev": "nodemon --ext json,ts --require ./env/local.ts --require ./src/enable-strict-mode.ts src/index.ts",
+    "start": "node --require ./dist/preloads.js dist/index.js",
+    "dev": "nodemon --ext json,ts --require ./src/preloads.ts src/index.ts",
     "preplay": "touch src/playground.ts",
-    "play": "ts-node --project tsconfig.playground.json --require ./env/local.ts --require ./src/enable-strict-mode.ts src/playground.ts"
+    "play": "ts-node --project tsconfig.playground.json --require ./src/preloads.ts src/playground.ts"
   },
   "devDependencies": {
     "@types/cors": "2.8.10",

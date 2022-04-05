@@ -1,11 +1,13 @@
 import type { Request, RequestHandler } from "express";
 import morgan = require("morgan");
-import logger, { Level } from "../log/logger";
 
 /** @private */
 interface HttpLoggerParams {
-	level?: Level;
+	level?: App.Logger.Level;
 }
+
+/** @private */
+const trailingNewLine = /\n$/;
 
 morgan.token("id", (req: Request) => req.id);
 morgan.format("main", "[:id] :method :url - :status :response-time ms");
@@ -16,7 +18,7 @@ const httpLogger = ({
 }: HttpLoggerParams = {}): RequestHandler => morgan("main", {
 	stream: {
 		write(log) {
-			logger.log(level, log.replace(/\n$/, ""));
+			App.logger.log(level, log.replace(trailingNewLine, ""));
 		},
 	},
 });

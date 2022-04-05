@@ -1,6 +1,5 @@
 import ms = require("ms");
 import jwt = require("jsonwebtoken");
-import logger from "../log/logger";
 import Logged from "../log/logged.decorator";
 import type { UserType } from "../db/models/user";
 import RefreshToken from "../db/models/refresh-token";
@@ -131,10 +130,10 @@ export default class AuthService extends Service<{
 		const destroyedCount = await RefreshToken.destroy({ where: { userID } });
 
 		if (destroyedCount > 0)
-			logger.info(`Invalidated refresh token for user "${userID}"`);
+			App.logger.info(`Invalidated refresh token for user "${userID}"`);
 
 		if (destroyedCount > 1)
-			logger.warn(`User "${userID}" unexpectedly has ${destroyedCount} refresh tokens`);
+			App.logger.warn(`User "${userID}" unexpectedly has ${destroyedCount} refresh tokens`);
 	}
 
 	@Logged({ level: "debug" })
@@ -253,7 +252,7 @@ export default class AuthService extends Service<{
 			return this.deps.userService.get(userID);
 		} catch (error) {
 			if (error instanceof Error && toleratedErrors.has(error.name)) {
-				logger.error(error);
+				App.logger.error(error);
 				return null;
 			}
 

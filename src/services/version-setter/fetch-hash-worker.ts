@@ -3,15 +3,7 @@ import { spawnSync, SpawnSyncReturns as SpawnResult } from "child_process";
 import Logged from "../../log/logged.decorator";
 
 /** @private */
-function hasSHA(value: unknown): value is { sha: string } {
-	return value != null && "sha" in (value as {}) && typeof (value as { sha: unknown }).sha === "string";
-}
-
-/** @private */
-function * entriesOf<Obj extends object>(obj: Obj): IterableIterator<readonly [ keyof Obj, Obj[keyof Obj] ]> {
-	for (const key in obj)
-		yield [ key, obj[key] ];
-}
+const hasSHA = App.createHasPropFn("sha", "string");
 
 /** @private */
 const gitBranch = process.env.HEROKU_BRANCH;
@@ -102,7 +94,7 @@ export class FetchHashAggregatedError extends global.Error {
 	) {
 		super("Could not fetch hash of the latest commit");
 
-		for (const [ id, worker ] of entriesOf(workers))
+		for (const [ id, worker ] of App.entriesOf(workers))
 			this.errors[id] = worker.error ?? null;
 	}
 }

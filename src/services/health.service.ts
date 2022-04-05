@@ -1,6 +1,5 @@
 import { Connection, getConnection } from "../db/connect";
 import Logged from "../log/logged.decorator";
-import logger from "../log/logger";
 import Service from "./abstract.service";
 import VersionSetter, { type Version } from "./version-setter";
 
@@ -35,13 +34,13 @@ interface Status {
 export default class HealthService extends Service {
 	protected readonly versionSetter = new VersionSetter()
 		.afterInit((version, status) => {
-			logger.debug("VersionSetter status:", status);
+			App.logger.debug("VersionSetter status:", status);
 
 			if (status.error)
-				logger.warn(status.error);
+				App.logger.warn(status.error);
 
 			else
-				logger.info("Version:", version);
+				App.logger.info("Version:", version);
 		});
 
 	protected readonly checks: Check[] = [
