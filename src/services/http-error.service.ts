@@ -1,7 +1,6 @@
 import { CelebrateError } from "celebrate";
 import type { RequestHandler } from "express";
 import Logged from "../log/logged.decorator";
-import logger from "../log/logger";
 import Service from "./abstract.service";
 import { AuthHintedError } from "./auth.service";
 
@@ -147,6 +146,6 @@ export default class HttpErrorService extends Service {
 	logError(error: unknown): void {
 		const message = this.createLogMessage(error);
 
-		logger.error(message);
+		App.logger.error(message);
 	}
 }

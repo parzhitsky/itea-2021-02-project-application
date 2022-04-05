@@ -1,6 +1,5 @@
 import type { ClientConfig } from "pg";
 import { Sequelize } from "sequelize";
-import logger from "../log/logger";
 
 export * from "sequelize";
 
@@ -23,7 +22,7 @@ const shouldUseSSL = ((): boolean => {
 		if (!isErrorInvalidURL(error))
 			throw error;
 
-		logger.warn(`Could not parse database URL as a URL: "${DATABASE_URL}"`);
+		App.logger.warn(`Could not parse database URL as a URL: "${DATABASE_URL}"`);
 
 		// by default try to use SSL for better security
 		return true;
@@ -40,7 +39,7 @@ const client = new Sequelize(DATABASE_URL, {
 		},
 	},
 	logging(sql) {
-		logger.debug(sql);
+		App.logger.debug(sql);
 	},
 });
 

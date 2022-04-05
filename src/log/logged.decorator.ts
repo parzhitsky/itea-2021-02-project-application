@@ -1,4 +1,3 @@
-import logger, { Level } from "./logger";
 import stringifyFunctionCall, { KnownArgMapperName, ArgMapper } from "./stringify-function-call";
 
 declare global {
@@ -9,7 +8,7 @@ declare global {
 
 /** @private */
 interface LoggedParams {
-	level?: Level;
+	level?: App.Logger.Level;
 	mapArgs?: KnownArgMapperName | ArgMapper;
 }
 
@@ -51,7 +50,7 @@ export default function Logged<Instance extends object>({
 		const params = { prefix: `Calling: ${logPrefix}`, mapArgs } as const;
 		const method = descriptor.value;
 		const logged: typeof method = function (this: typeof target, ...args) {
-			logger.log(level, stringifyFunctionCall(key, args, params));
+			App.logger.log(level, stringifyFunctionCall(key, args, params));
 			return method.apply(this, args);
 		};
 
