@@ -1,6 +1,7 @@
 declare global {
 	namespace NodeJS {
 		interface ProcessEnv {
+			readonly npm_lifecycle_event: string;
 			readonly NODE_ENV: "production" | "development" | "test";
 			readonly PORT: string;
 			readonly HEROKU_BRANCH: string;
