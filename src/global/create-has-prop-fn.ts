@@ -26,13 +26,13 @@ function hasKey<Key extends PropertyKey>(object: {}, key: Key): object is { [K i
 /** @public */
 const createHasPropFn = <
 	Key extends PropertyKey,
-	Type extends TypeOf,
+	Type extends TypeOf | undefined = undefined,
 >(
 	key: Key,
 	type?: Type,
 ) =>
 	(value: unknown): value is {
-		[K in Key]: Type extends undefined ? unknown : TypeMap[Type];
+		[K in Key]: Type extends undefined ? unknown : TypeMap[NonNullable<Type>];
 	} => {
 		return isNotNull(value) && hasKey(value, key) && (type == null || typeof value[key] === type);
 	};
